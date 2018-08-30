@@ -1,4 +1,7 @@
 package server.core.util;
 
-public class ThriftProtocol {
+public enum ThriftProtocol {
+    Binary,
+    Compact,
+    Json
 }
