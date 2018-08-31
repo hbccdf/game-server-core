@@ -1,4 +1,9 @@
 package server.core.message.registry;
 
-public class DefaultMessageActionRegistry {
+import server.core.module.IServiceHolder;
+
+public class DefaultMessageActionRegistry<T> extends AbstractMessageActionRegistry<T> {
+    public DefaultMessageActionRegistry(IServiceHolder holder) {
+        super(holder);
+    }
 }
