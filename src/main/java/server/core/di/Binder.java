@@ -1,4 +1,6 @@
 package server.core.di;
 
-public class Binder {
+import com.google.inject.AbstractModule;
+
+public abstract class Binder extends AbstractModule {
 }
