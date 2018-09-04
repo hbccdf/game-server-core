@@ -7,7 +7,7 @@ import com.google.inject.Injector;
 public abstract class GuiceInjector implements IInjector {
     private Injector injector;
     public GuiceInjector() {
-        injector = Guice.createInjector(newBinder());
+        injector = Guice.createInjector(newBinders());
     }
 
     @Override
@@ -16,4 +16,9 @@ public abstract class GuiceInjector implements IInjector {
     }
 
     protected abstract AbstractModule newBinder();
+
+    protected AbstractModule[] newBinders() {
+        AbstractModule[] modules = new AbstractModule[]{newBinder()};
+        return modules;
+    }
 }

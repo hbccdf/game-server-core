@@ -10,8 +10,21 @@ public class ServiceInjector extends AbstractServiceFactory {
         this.injector = injector;
     }
 
+    public ServiceInjector() {
+        super();
+    }
+
+    public void setInjector(IInjector injector) {
+        this.injector = injector;
+    }
+
     @Override
     public <T> T newService(Class<T> serviceType, int endpoint) {
         return injector.getInstance(serviceType);
+    }
+
+    @Override
+    public <T> T newInstace(Class<T> classType) {
+        return injector.getInstance(classType);
     }
 }

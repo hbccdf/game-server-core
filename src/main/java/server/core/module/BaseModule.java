@@ -5,8 +5,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import server.core.di.Binder;
 import server.core.di.GuiceInjector;
+import server.core.di.IInjector;
 import server.core.service.AbstractService;
 import server.core.service.factory.AbstractServiceFactory;
+import server.core.service.factory.IInstaceFactory;
 import server.core.service.factory.ServiceInjector;
 
 import java.lang.reflect.Method;
@@ -26,13 +28,34 @@ public class BaseModule implements IModule {
     }
 
     public BaseModule(Binder binder) {
-        this.factory = new ServiceInjector(new GuiceInjector() {
+
+        IServiceHolder holder = this;
+        ServiceInjector serviceInjector = new ServiceInjector();
+        this.factory = serviceInjector;
+
+        IInjector injector = new GuiceInjector() {
 
             @Override
             protected AbstractModule newBinder() {
                 return binder;
             }
-        });
+
+            @Override
+            protected AbstractModule[] newBinders() {
+                AbstractModule[] modules = new AbstractModule[2];
+                modules[0] = newBinder();
+
+                modules[1] = new AbstractModule() {
+                    @Override
+                    protected void configure() {
+                        bind(IInstaceFactory.class).toInstance(factory);
+                        bind(IServiceHolder.class).toInstance(holder);
+                    }
+                };
+                return modules;
+            }
+        };
+        serviceInjector.setInjector(injector);
     }
 
     @Override
@@ -85,9 +108,6 @@ public class BaseModule implements IModule {
 
     protected <T> T newService(Class<T> serviceType, int endpoint) {
         T s = factory.newService(serviceType, endpoint);
-        if (s instanceof AbstractService) {
-            ((AbstractService) s).setHolder(this);
-        }
         return s;
     }
 
