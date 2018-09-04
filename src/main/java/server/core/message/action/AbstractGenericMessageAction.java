@@ -1,11 +1,12 @@
 package server.core.message.action;
 
-import io.netty.channel.ChannelHandlerContext;
+import com.google.inject.Inject;
 import server.core.module.IServiceHolder;
 
 public abstract class AbstractGenericMessageAction implements IMessageAction {
 
     public static final String FIELD_NAME_HOLDER = "holder";
+    @Inject
     private IServiceHolder holder;
     private int id;
 

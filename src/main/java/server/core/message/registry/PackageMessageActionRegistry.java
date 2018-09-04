@@ -1,12 +1,10 @@
 package server.core.message.registry;
 
+import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import server.core.message.action.AbstractGenericMessageAction;
 import server.core.message.action.IMessageAction;
-import server.core.module.IServiceHolder;
 import server.core.service.factory.IInstaceFactory;
-import server.core.util.ClassReflection;
 import server.core.util.ClassUtil;
 
 import java.lang.reflect.Modifier;
@@ -14,11 +12,13 @@ import java.util.Set;
 
 public class PackageMessageActionRegistry<K> extends AbstractMessageActionRegistry<K> {
     private static final Logger logger = LoggerFactory.getLogger(PackageMessageActionRegistry.class);
+
     private IInstaceFactory factory;
 
-    public PackageMessageActionRegistry(IServiceHolder holder, String pn, IInstaceFactory instaceFactory) {
-        super(holder);
-        this.factory = instaceFactory;
+    public PackageMessageActionRegistry(String pn, IInstaceFactory factory) {
+        super();
+
+        this.factory = factory;
 
         Set<Class<?>> classes = ClassUtil.getClasses(pn);
         for (Class<?> clz : classes) {
@@ -41,7 +41,6 @@ public class PackageMessageActionRegistry<K> extends AbstractMessageActionRegist
     public <T extends IMessageAction> boolean reg(Class<T> clz) {
         try {
             T handler = factory.newInstace(clz);
-            ClassReflection.set(handler, AbstractGenericMessageAction.FIELD_NAME_HOLDER, this.holder);
 
             K command = (K) handler.getId();
             if (contain(command)) {
