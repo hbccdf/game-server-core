@@ -7,10 +7,10 @@ import server.core.service.factory.IInstaceFactory;
 public abstract class AbstractService implements IService {
 
     @Inject
-    private IServiceHolder holder;
+    protected IServiceHolder holder;
 
     @Inject
-    private IInstaceFactory factory;
+    protected IInstaceFactory factory;
 
     public IServiceHolder getHolder() {
         return holder;
