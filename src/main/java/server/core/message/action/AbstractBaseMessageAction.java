@@ -24,9 +24,9 @@ public abstract class AbstractBaseMessageAction<T extends TBase<?, ?>, M extends
         process(connId, req);
     }
 
-    public abstract void process(int connId, T req) throws Exception;
+    protected abstract int getConnId(ChannelHandlerContext ctx, M msg);
 
     public abstract T newObject();
 
-    protected abstract int getConnId(ChannelHandlerContext ctx, M msg);
+    public abstract void process(int connId, T req) throws Exception;
 }
