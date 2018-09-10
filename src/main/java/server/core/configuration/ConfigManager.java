@@ -1,9 +1,12 @@
 package server.core.configuration;
 
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
+import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -11,6 +14,8 @@ import java.util.Properties;
 
 public class ConfigManager {
     private static final JavaPropsMapper mapper = new JavaPropsMapper();
+
+    private static final Logger logger = LoggerFactory.getLogger(ConfigManager.class);
 
     public static <T> T read(Class<T> clz, String configFile) {
         Properties props = getProperties(configFile);
@@ -22,6 +27,16 @@ public class ConfigManager {
             return obj;
         } catch (IOException e) {
             //todo logger
+        }
+        return null;
+    }
+
+    public static Configuration properties(String path) {
+        Configurations configs = new Configurations();
+        try {
+            return configs.properties(path);
+        } catch (ConfigurationException e) {
+            logger.error("fail to load config file, path={}", path, e);
         }
         return null;
     }
