@@ -38,7 +38,7 @@ public class ConfigManager {
 
     public static <T> T read(Class<T> clz, String configFile, String rootKey) {
         Properties props = getProperties(configFile, rootKey);
-        if (props == null) {
+        if (props == null || props.isEmpty()) {
             return null;
         }
         try {
