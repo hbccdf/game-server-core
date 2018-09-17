@@ -1,6 +1,5 @@
 package server.core.ecs;
 
-import com.sun.org.apache.bcel.internal.generic.ICONST;
 import server.core.util.ClassReflection;
 
 import java.util.HashMap;
