@@ -72,7 +72,7 @@ public class ConfigManager {
             }
             return props;
         } catch (ConfigurationException e) {
-            //todo logger
+            logger.error("config error", e);
         }
         return null;
     }
@@ -90,7 +90,7 @@ public class ConfigManager {
             }
             return props;
         } catch (ConfigurationException e) {
-            //todo logger
+            logger.error("config error", e);
         }
         return null;
     }
