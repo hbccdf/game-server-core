@@ -40,7 +40,6 @@ public class ModuleManager implements Iterable<IModule> {
         }
         catch (Exception e)
         {
-            e.printStackTrace();
             log.error("fail to load modules. ", e);
         }
         return false;

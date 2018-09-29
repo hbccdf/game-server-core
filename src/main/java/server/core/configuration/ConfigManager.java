@@ -18,8 +18,41 @@ public class ConfigManager {
 
     private static final Logger logger = LoggerFactory.getLogger(ConfigManager.class);
 
+    private static final String configPath = "config.properties";
+
+    private static String configProfile = "dev";
+
     static {
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,false);
+
+        Properties props = getProperties(configPath);
+        configProfile = props.getProperty("profile", configProfile);
+    }
+
+    public static <T> T readProfile(Class<T> clz) {
+        return readConfigProfile(clz, configPath);
+    }
+
+    public static <T> T readProfile(Class<T> clz, String rootKey) {
+        return readConfigProfile(clz, configPath, rootKey);
+    }
+
+    public static <T> T readConfigProfile(Class<T> clz, String configFile) {
+        //not root key config, need to read global key first
+        T obj = read(clz, configFile);
+        if (obj == null) {
+            obj = read(clz, configFile, configProfile);
+        }
+        return obj;
+    }
+
+    public static <T> T readConfigProfile(Class<T> clz, String configFile, String rootKey) {
+        //have root key config, need to read profile key first
+        T obj = read(clz, configFile, configProfile + "." + rootKey);
+        if (obj == null) {
+            obj = read(clz, configFile, rootKey);
+        }
+        return obj;
     }
 
     public static <T> T read(Class<T> clz, String configFile) {
