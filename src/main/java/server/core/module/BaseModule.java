@@ -31,7 +31,7 @@ public class BaseModule implements IModule {
 
         IServiceHolder holder = this;
         ServiceInjector serviceInjector = new ServiceInjector();
-        this.factory = serviceInjector;
+        setFactory(serviceInjector);
 
         IInjector injector = new GuiceInjector() {
 
@@ -161,5 +161,9 @@ public class BaseModule implements IModule {
                 }
             }
         }
+    }
+
+    protected void setFactory(AbstractServiceFactory factory) {
+        this.factory = factory;
     }
 }

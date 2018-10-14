@@ -42,16 +42,23 @@ public class ServiceInjector extends AbstractServiceFactory {
         }
 
         try {
-            for (Field field : object.getClass().getDeclaredFields()) {
-                if (field.isAnnotationPresent(Inject.class)) {
-                    field.setAccessible(true);
+            for (Class<?> clz = object.getClass(); clz != Object.class; clz = clz.getSuperclass()) {
+                for (Field field : clz.getDeclaredFields()) {
+                    if (field.isAnnotationPresent(Inject.class)) {
+                        field.setAccessible(true);
 
-                    Object injectObject = injector.getInstance(field.getType());
-                    field.set(object, injectObject);
+                        Object injectObject = injector.getInstance(field.getType());
+                        field.set(object, injectObject);
+                    }
                 }
             }
         } catch (Exception e) {
             logger.error("inject object {} failed", object.getClass().getName(), e);
         }
+    }
+
+    @Override
+    public void regInstance(Class<?> clz, Object object) {
+        injector.regInstance(clz, object);
     }
 }
