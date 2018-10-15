@@ -73,7 +73,7 @@ public class BaseModule implements IModule {
                         if ((boolean) method.invoke(end.getValue())) {
                             logger.info("Initialize service success: " + end.getKey() + ":" + service.getKey().getCanonicalName());
                         } else {
-                            logger.info("Fail initialize service: " + end.getKey() + ":" + service.getKey().getCanonicalName());
+                            logger.error("Fail initialize service: " + end.getKey() + ":" + service.getKey().getCanonicalName());
                         }
                     }
                 } catch (Exception e) {
