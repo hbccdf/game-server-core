@@ -35,5 +35,13 @@ public class DateTimeUtil {
 
         return cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR);
     }
+
+    public static int getInterval(Date time1, Date time2) {
+        return (int)(time1.getTime() - time2.getTime());
+    }
+
+    public static int getInterval(Date time) {
+        return (int) (System.currentTimeMillis() - time.getTime());
+    }
 }
 
