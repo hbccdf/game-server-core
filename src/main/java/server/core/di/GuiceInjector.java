@@ -17,10 +17,10 @@ public abstract class GuiceInjector implements IInjector {
 
     @Override
     public <T> T getInstance(Class<T> clz) {
-        Object obj = instances.get(clz);
-        if (obj != null) {
-            return (T) obj;
-        }
+//        Object obj = instances.get(clz);
+//        if (obj != null) {
+//            return (T) obj;
+//        }
         return injector.getInstance(clz);
     }
 
@@ -33,6 +33,6 @@ public abstract class GuiceInjector implements IInjector {
 
     @Override
     public void regInstance(Class<?> clz, Object object) {
-        instances.put(clz, object);
+        //instances.put(clz, object);
     }
 }

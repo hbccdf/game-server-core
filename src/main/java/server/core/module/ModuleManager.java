@@ -23,34 +23,36 @@ public class ModuleManager implements Iterable<IModule> {
     }
     public boolean initialize(String config){
         Configurations configs = new Configurations();
-        try
-        {
+        try {
             FileBasedConfigurationBuilder<XMLConfiguration> builder = configs.xmlBuilder(config);
             XMLConfiguration xml = builder.getConfiguration();
             List<String> modules = xml.getList(String.class, CONF_NODE);
             for (String m : modules) {
                 Class<?> clz = Class.forName(m);
                 if(IModule.class.isAssignableFrom(clz)){
-                    load((Class<IModule>)clz);
+                    if (!load((Class<IModule>) clz)) {
+                        return false;
+                    }
                 }else{
                     throw new ConfigurationException("class must implements IModule. class= " + clz);
                 }
             }
             return true;
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             log.error("fail to load modules. ", e);
         }
         return false;
     }
 
-    public <T extends IModule> void load(Class<T> clz) throws InstantiationException, IllegalAccessException {
+    public <T extends IModule> boolean load(Class<T> clz) throws InstantiationException, IllegalAccessException {
         if(!modules.containsKey(clz)){
             T module = clz.newInstance();
             modules.put(clz, module);
-            module.initialize();
+            if (!module.initialize()) {
+                return false;
+            }
         }
+        return true;
     }
 
     @SuppressWarnings("unchecked")

@@ -59,7 +59,7 @@ public class BaseModule implements IModule {
     }
 
     @Override
-    public void initialize() {
+    public boolean initialize() {
         for (Map.Entry<Class<?>, HashMap<Integer, Object>> service : services.entrySet()) {
             for (Map.Entry<Integer, Object> end : service.getValue().entrySet()) {
                 Method method = null;
@@ -74,6 +74,7 @@ public class BaseModule implements IModule {
                             logger.info("Initialize service success: " + end.getKey() + ":" + service.getKey().getCanonicalName());
                         } else {
                             logger.error("Fail initialize service: " + end.getKey() + ":" + service.getKey().getCanonicalName());
+                            return false;
                         }
                     }
                 } catch (Exception e) {
@@ -81,6 +82,7 @@ public class BaseModule implements IModule {
                 }
             }
         }
+        return true;
     }
 
     @Override
