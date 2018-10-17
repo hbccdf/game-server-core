@@ -62,6 +62,8 @@ public class ServiceProxy implements InvocationHandler {
                 }
                 return method.invoke(client, args);
             }
+
+            //todo reconnect server and destroy connection when TTransportException
         }
     }
 
