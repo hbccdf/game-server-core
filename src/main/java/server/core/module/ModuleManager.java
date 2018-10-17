@@ -6,6 +6,7 @@ import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import server.core.service.factory.IInstaceFactory;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -79,6 +80,11 @@ public class ModuleManager implements Iterable<IModule> {
             }
         }
     }
+
+    public IInstaceFactory getInstanceFactory() {
+        return iterator().next().getInstanceFactory();
+    }
+
     @Override
     public Iterator<IModule> iterator() {
         return modules.values().iterator();

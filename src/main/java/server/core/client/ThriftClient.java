@@ -9,6 +9,8 @@ import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import server.core.configuration.ConfigManager;
+import server.core.service.RemoteServerConfig;
 
 import java.lang.reflect.Constructor;
 
@@ -30,5 +32,14 @@ public class ThriftClient {
             logger.error("proxy client error: {}", clz, e);
         }
         return null;
+    }
+
+    public static <T> T stub(Class<T> clz, String configRootKey) {
+        RemoteServerConfig config = ConfigManager.readProfile(RemoteServerConfig.class, configRootKey);
+        if (config == null) {
+            return null;
+        }
+
+        return stub(config.getIp(), config.getPort(), clz);
     }
 }

@@ -165,6 +165,11 @@ public class BaseModule implements IModule {
         }
     }
 
+    @Override
+    public IInstaceFactory getInstanceFactory() {
+        return this.factory;
+    }
+
     protected void setFactory(AbstractServiceFactory factory) {
         this.factory = factory;
     }
