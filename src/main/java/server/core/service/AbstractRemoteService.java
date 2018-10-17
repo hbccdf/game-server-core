@@ -28,10 +28,19 @@ public class AbstractRemoteService extends AbstractService {
 
     private Thread thread = null;
 
+    private String configRootKey;
+
+    private String className = this.getClass().getName();
+
+    public AbstractRemoteService(String configRootKey) {
+        this.configRootKey = configRootKey;
+    }
+
     @Override
     public boolean initialize() {
-        BackServerConfig config = ConfigManager.readProfile(BackServerConfig.class, "backServer");
+        RemoteServerConfig config = ConfigManager.readProfile(RemoteServerConfig.class, configRootKey);
         if (config == null) {
+            logger.error("{} failed to get {} config", className, configRootKey);
             return false;
         }
 
@@ -40,7 +49,7 @@ public class AbstractRemoteService extends AbstractService {
             initService(multiProcessor);
             return true;
         } catch (Exception e) {
-            logger.error("fail start remote service {}", this.getClass().getName(), e);
+            logger.error("fail start remote service {}", className, e);
         }
         return false;
     }
@@ -52,7 +61,6 @@ public class AbstractRemoteService extends AbstractService {
 
     @Override
     public void release() {
-
     }
 
 
@@ -77,6 +85,8 @@ public class AbstractRemoteService extends AbstractService {
         thread = new Thread(() -> server.serve());
         thread.start();
 
+        logger.info("start remote server {}, at port {}", this.getClass().getName(), port);
+
         return multiProcessor;
     }
 
@@ -91,21 +101,7 @@ public class AbstractRemoteService extends AbstractService {
                 TProcessor processor = (TProcessor) constructor.newInstance(this);
                 multiProcessor.registerProcessor(clzz.getCanonicalName(), processor);
                 break;
-
             }
-        }
-    }
-
-    public static class BackServerConfig {
-        private String ip;
-        private int port;
-
-        public String getIp() {
-            return ip;
-        }
-
-        public int getPort() {
-            return port;
         }
     }
 }

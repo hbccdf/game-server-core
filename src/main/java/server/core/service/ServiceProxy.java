@@ -10,6 +10,7 @@ import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import server.core.configuration.ConfigManager;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
@@ -21,10 +22,15 @@ public class ServiceProxy implements InvocationHandler {
 
     private Class<?> serviceInterface;
 
+    private String configRootKey;
+
+    private RemoteServerConfig config;
+
     private TServiceClient client = null;
 
-    public ServiceProxy(Class<?> serviceInterface) {
+    public ServiceProxy(Class<?> serviceInterface, String configRootKey) {
         this.serviceInterface = serviceInterface;
+        this.configRootKey = configRootKey;
     }
 
     @Override
@@ -33,7 +39,12 @@ public class ServiceProxy implements InvocationHandler {
             String methodName = method.getName();
             if ("initialize".equals(methodName)) {
                 try {
-                    buildConnection("127.0.0.1", 8855);
+                    config = ConfigManager.readProfile(RemoteServerConfig.class, configRootKey);
+                    if (config == null) {
+                        logger.error("read server config {} failed", configRootKey);
+                        return false;
+                    }
+                    buildConnection(config.getIp(), config.getPort());
                     return true;
                 } catch (Exception e) {
                     logger.error("initialize service {} error", serviceInterface, e);
