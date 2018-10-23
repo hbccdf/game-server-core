@@ -30,57 +30,27 @@ public class ConfigManager {
     }
 
     public static <T> T readProfile(Class<T> clz) {
-        return readConfigProfile(clz, configPath);
+        return internalRead(clz, configPath, null, configProfile);
     }
 
     public static <T> T readProfile(Class<T> clz, String rootKey) {
-        return readConfigProfile(clz, configPath, rootKey);
+        return internalRead(clz, configPath, rootKey, configProfile);
     }
 
     public static <T> T readConfigProfile(Class<T> clz, String configFile) {
-        //not root key config, need to read global key first
-        T obj = read(clz, configFile);
-        if (obj == null) {
-            obj = read(clz, configFile, configProfile);
-        }
-        return obj;
+        return internalRead(clz, configFile, null, configProfile);
     }
 
     public static <T> T readConfigProfile(Class<T> clz, String configFile, String rootKey) {
-        //have root key config, need to read profile key first
-        T obj = read(clz, configFile, configProfile + "." + rootKey);
-        if (obj == null) {
-            obj = read(clz, configFile, rootKey);
-        }
-        return obj;
+        return internalRead(clz, configFile, rootKey, configProfile);
     }
 
     public static <T> T read(Class<T> clz, String configFile) {
-        Properties props = getProperties(configFile);
-        if (props == null) {
-            return null;
-        }
-        try {
-            T obj = mapper.readPropertiesAs(props, clz);
-            return obj;
-        } catch (IOException e) {
-            logger.error("read class config failed, class={}, configFile={}", clz.getName(), configFile, e);
-        }
-        return null;
+        return internalRead(clz, configFile, null, null);
     }
 
     public static <T> T read(Class<T> clz, String configFile, String rootKey) {
-        Properties props = getProperties(configFile, rootKey);
-        if (props == null || props.isEmpty()) {
-            return null;
-        }
-        try {
-            T obj = mapper.readPropertiesAs(props, clz);
-            return obj;
-        } catch (IOException e) {
-            logger.error("read class config failed, class={}, configFile={}, rootKey={}", clz.getName(), configFile, rootKey, e);
-        }
-        return null;
+        return internalRead(clz, configFile, rootKey, null);
     }
 
     public static Configuration properties(String path) {
@@ -94,14 +64,40 @@ public class ConfigManager {
     }
 
     public static Properties getProperties(String path) {
+        return internalGetProperties(path, null, null);
+    }
+
+    public static Properties getProperties(String path, String rootKey) {
+        return internalGetProperties(path, rootKey, null);
+    }
+
+    private static <T> T internalRead(Class<T> clz, String configFile, String rootKey, String profile) {
+        Properties props = internalGetProperties(configFile, rootKey, profile);
+        if (props == null || props.isEmpty()) {
+            return null;
+        }
+        try {
+            T obj = mapper.readPropertiesAs(props, clz);
+            return obj;
+        } catch (IOException e) {
+            logger.error("read class config failed, class={}, configFile={}, rootKey={}, profile={}", clz.getName(), configFile, rootKey, profile, e);
+        }
+        return null;
+    }
+
+    private static Properties internalGetProperties(String path, String rootKey, String profile) {
         Configurations configs = new Configurations();
         try {
             Properties props = new Properties();
             PropertiesConfiguration p = configs.properties(path);
-            Iterator<String> it = p.getKeys();
-            while (it.hasNext()) {
-                String key = it.next();
-                props.setProperty(key, p.getString(key));
+            extractProperties(p, props, rootKey);
+            if (profile != null && !profile.equals("")) {
+                String prifileRootKey = profile;
+                boolean isInvalidRootKey = rootKey == null || rootKey.equals("");
+                if (!isInvalidRootKey) {
+                    prifileRootKey = profile + "." + rootKey;
+                }
+                extractProperties(p, props, prifileRootKey);
             }
             return props;
         } catch (ConfigurationException e) {
@@ -110,21 +106,18 @@ public class ConfigManager {
         return null;
     }
 
-    public static Properties getProperties(String path, String rootKey) {
-        Configurations configs = new Configurations();
-        try {
-            Properties props = new Properties();
-            PropertiesConfiguration p = configs.properties(path);
-            Iterator<String> it = p.getKeys(rootKey);
-            while (it.hasNext()) {
-                String key = it.next();
-                String subKey = key.substring(rootKey.length() + 1);
-                props.setProperty(subKey, p.getString(key));
-            }
-            return props;
-        } catch (ConfigurationException e) {
-            logger.error("config error", e);
+    private static void extractProperties(PropertiesConfiguration p, Properties props, String rootKey) {
+        Iterator<String> it = null;
+        boolean isInvalidRootKey = rootKey == null || rootKey.equals("");
+        if (isInvalidRootKey) {
+            it = p.getKeys();
+        } else {
+            it = p.getKeys(rootKey);
         }
-        return null;
+        while (it.hasNext()) {
+            String key = it.next();
+            String subKey = isInvalidRootKey ? key : key.substring(rootKey.length() + 1);
+            props.setProperty(subKey, p.getString(key));
+        }
     }
 }
