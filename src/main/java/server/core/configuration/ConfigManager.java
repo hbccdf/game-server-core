@@ -35,11 +35,11 @@ public class ConfigManager {
         return configProps.getProperty(key, defaultValue);
     }
 
-    public static <T> T readProfile(Class<T> clz) {
+    public static <T> T read(Class<T> clz) {
         return internalRead(clz, null);
     }
 
-    public static <T> T readProfile(Class<T> clz, String rootKey) {
+    public static <T> T read(Class<T> clz, String rootKey) {
         return internalRead(clz, rootKey);
     }
 

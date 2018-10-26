@@ -38,7 +38,7 @@ public class AbstractRemoteService extends AbstractService {
 
     @Override
     public boolean initialize() {
-        RemoteServerConfig config = ConfigManager.readProfile(RemoteServerConfig.class, configRootKey);
+        RemoteServerConfig config = ConfigManager.read(RemoteServerConfig.class, configRootKey);
         if (config == null) {
             logger.error("{} failed to get {} config", className, configRootKey);
             return false;

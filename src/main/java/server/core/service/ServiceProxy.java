@@ -39,7 +39,7 @@ public class ServiceProxy implements InvocationHandler {
             String methodName = method.getName();
             if ("initialize".equals(methodName)) {
                 try {
-                    config = ConfigManager.readProfile(RemoteServerConfig.class, configRootKey);
+                    config = ConfigManager.read(RemoteServerConfig.class, configRootKey);
                     if (config == null) {
                         logger.error("read server config {} failed", configRootKey);
                         return false;

@@ -35,7 +35,7 @@ public class ThriftClient {
     }
 
     public static <T> T stub(Class<T> clz, String configRootKey) {
-        RemoteServerConfig config = ConfigManager.readProfile(RemoteServerConfig.class, configRootKey);
+        RemoteServerConfig config = ConfigManager.read(RemoteServerConfig.class, configRootKey);
         if (config == null) {
             return null;
         }
