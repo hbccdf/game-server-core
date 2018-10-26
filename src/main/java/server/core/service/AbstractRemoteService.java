@@ -63,6 +63,10 @@ public class AbstractRemoteService extends AbstractService {
     public void release() {
     }
 
+    @Override
+    public boolean reload() {
+        return true;
+    }
 
     private TMultiplexedProcessor initServer(int port) throws TTransportException {
         TMultiplexedProcessor multiProcessor = processors.get(port);

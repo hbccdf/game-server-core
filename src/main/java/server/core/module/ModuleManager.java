@@ -4,8 +4,9 @@ import org.apache.commons.configuration2.XMLConfiguration;
 import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import server.core.configuration.ConfigManager;
 import server.core.service.factory.IInstaceFactory;
 
 import java.util.HashMap;
@@ -13,7 +14,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class ModuleManager implements Iterable<IModule> {
-    private static final Log log = LogFactory.getLog(ModuleManager.class);
+    private static final Logger log = LoggerFactory.getLogger(ModuleManager.class);
     public static final ModuleManager INSTANCE = new ModuleManager();
     private static final String CONF_NODE = "modules.module";
 
@@ -22,7 +23,8 @@ public class ModuleManager implements Iterable<IModule> {
     private ModuleManager(){
 
     }
-    public boolean initialize(String config){
+
+    public boolean initialize(String config) {
         Configurations configs = new Configurations();
         try {
             FileBasedConfigurationBuilder<XMLConfiguration> builder = configs.xmlBuilder(config);
@@ -45,40 +47,32 @@ public class ModuleManager implements Iterable<IModule> {
         return false;
     }
 
-    public <T extends IModule> boolean load(Class<T> clz) throws InstantiationException, IllegalAccessException {
-        if(!modules.containsKey(clz)){
-            T module = clz.newInstance();
-            modules.put(clz, module);
-            if (!module.initialize()) {
-                return false;
-            }
+    public boolean reload() {
+        if (!ConfigManager.reload()) {
+            return false;
+        }
+
+        for (IModule m : modules.values()) {
+            m.reload();
         }
         return true;
+    }
+
+    public void update(long now) {
+        for (IModule m : modules.values()) {
+            m.update(now);
+        }
+    }
+
+    public void release() {
+        for (IModule m : modules.values()) {
+            m.release();
+        }
     }
 
     @SuppressWarnings("unchecked")
     public <T extends IModule> T getModule(Class<T> clz) {
         return (T) modules.get(clz);
-    }
-
-    public void update(long now) {
-        Iterator<IModule> it = modules.values().iterator();
-        while(it.hasNext()){
-            IModule m = it.next();
-            if(m != null){
-                m.update(now);
-            }
-        }
-    }
-
-    public void release() {
-        Iterator<IModule> it = modules.values().iterator();
-        while(it.hasNext()){
-            IModule m = it.next();
-            if(m != null){
-                m.release();
-            }
-        }
     }
 
     public IInstaceFactory getInstanceFactory() {
@@ -88,5 +82,16 @@ public class ModuleManager implements Iterable<IModule> {
     @Override
     public Iterator<IModule> iterator() {
         return modules.values().iterator();
+    }
+
+    private  <T extends IModule> boolean load(Class<T> clz) throws InstantiationException, IllegalAccessException {
+        if(!modules.containsKey(clz)){
+            T module = clz.newInstance();
+            modules.put(clz, module);
+            if (!module.initialize()) {
+                return false;
+            }
+        }
+        return true;
     }
 }

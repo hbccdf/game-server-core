@@ -31,6 +31,16 @@ public class ConfigManager {
         loadConfig(true);
     }
 
+    public static boolean reload() {
+        Properties props = internalLoadConfig(true);
+        if (props == null) {
+            return false;
+        }
+
+        configProps = props;
+        return true;
+    }
+
     public static String getString(String key, String defaultValue) {
         return configProps.getProperty(key, defaultValue);
     }
@@ -55,24 +65,29 @@ public class ConfigManager {
     }
 
     private static void loadConfig(boolean withUserConfig) {
-        Properties tmpProps = internalGetProperties(configPath, null, null);
-        configProfile = tmpProps.getProperty("profile", configProfile);
+        Properties props = internalGetProperties(configPath, null, null);
+        configProfile = props.getProperty("profile", configProfile);
 
-        configProps = internalGetProperties(configPath, null, configProfile);
+        configProps = internalLoadConfig(withUserConfig);
+    }
 
-        if (!withUserConfig) {
-            return;
+    private static Properties internalLoadConfig(boolean withUserConfig) {
+        Properties props = internalGetProperties(configPath, null, configProfile);
+        if (props == null || !withUserConfig) {
+            return props;
         }
 
         String customPath = getCustomConfigPath(configPath);
         try {
             if (ConfigManager.class.getClassLoader().getResources(customPath).hasMoreElements()) {
                 Properties customProps = internalGetProperties(customPath, null, configProfile);
-                configProps.putAll(customProps);
+                props.putAll(customProps);
             }
         } catch (Exception e) {
             logger.error("read custom file error, {}", customPath, e);
         }
+
+        return props;
     }
 
     private static Properties internalGetProperties(String rootKey) {

@@ -1,6 +1,8 @@
 package server.core.service;
 
-public interface IService {
+import server.core.configuration.IReloadable;
+
+public interface IService extends IReloadable {
     boolean initialize();
     boolean isValid();
     void release();

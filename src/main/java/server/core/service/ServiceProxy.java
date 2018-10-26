@@ -56,9 +56,11 @@ public class ServiceProxy implements InvocationHandler {
             } else if ("release".equals(methodName)) {
                 destroyConnection();
                 return null;
+            } else if("reload".equals(methodName)) {
+                return null;
             } else {
                 if (!alive()) {
-                    throw new IllegalStateException("remote service is not avaliable: " + serviceInterface.getCanonicalName());
+                    throw new IllegalStateException("remote service is not available: " + serviceInterface.getCanonicalName());
                 }
                 return method.invoke(client, args);
             }

@@ -3,6 +3,7 @@ package server.core.module;
 import com.google.inject.AbstractModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import server.core.configuration.IReloadable;
 import server.core.di.Binder;
 import server.core.di.GuiceInjector;
 import server.core.di.IInjector;
@@ -71,14 +72,33 @@ public class BaseModule implements IModule {
                 try {
                     if (method != null) {
                         if ((boolean) method.invoke(end.getValue())) {
-                            logger.info("Initialize service success: " + end.getKey() + ":" + service.getKey().getCanonicalName());
+                            logger.info("Initialize service success: {}:{}", end.getKey(), service.getKey().getCanonicalName());
                         } else {
-                            logger.error("Fail initialize service: " + end.getKey() + ":" + service.getKey().getCanonicalName());
+                            logger.error("Fail initialize service: {}:{}", end.getKey(), service.getKey().getCanonicalName());
                             return false;
                         }
                     }
                 } catch (Exception e) {
                     throw new RuntimeException("Fail initialize service: " + end.getKey() + ":" + service.getKey().getCanonicalName(), e);
+                }
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public boolean reload() {
+        for (HashMap<Integer, Object> endpoint : services.values()) {
+            for (Object s : endpoint.values()) {
+                if (s instanceof IReloadable) {
+                    IReloadable r = (IReloadable) s;
+                    try {
+                        if (!r.reload()) {
+                            logger.warn("service reload failed: {}", s.getClass().getCanonicalName());
+                        }
+                    } catch (Exception e) {
+                        logger.error("service reload error: {}", s.getClass().getCanonicalName());
+                    }
                 }
             }
         }
@@ -101,7 +121,7 @@ public class BaseModule implements IModule {
                         logger.info("Release service success: " + s.getClass().getCanonicalName());
                     }
                 } catch (Exception e) {
-                    throw new RuntimeException("Fail release service:"+s.getClass().getCanonicalName(), e);
+                    throw new RuntimeException("Fail release service:" + s.getClass().getCanonicalName(), e);
                 }
             }
         }
