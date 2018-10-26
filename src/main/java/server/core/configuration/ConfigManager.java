@@ -9,6 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import server.core.util.StringUtil;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
@@ -53,6 +55,22 @@ public class ConfigManager {
         configProps.setProperty(key, value);
     }
 
+    public static boolean writeCustomConfig(Map<String, String> configs) {
+        String customPath = getCustomConfigFile(configPath);
+        try (FileWriter fw = new FileWriter(customPath)) {
+            StringBuilder sb = new StringBuilder();
+            for (Map.Entry<String, String> entry : configs.entrySet()) {
+                sb.append(entry.getKey()).append("=").append(entry.getValue()).append("\n");
+            }
+            fw.write(sb.toString());
+            fw.flush();
+            return true;
+        } catch (Exception e) {
+            logger.error("write config file error, {}", e);
+        }
+        return false;
+    }
+
     public static <T> T read(Class<T> clz) {
         return internalRead(clz, null);
     }
@@ -85,9 +103,9 @@ public class ConfigManager {
             return props;
         }
 
-        String customPath = getCustomConfigPath(configPath);
+        String customPath = getCustomConfigFile(configPath);
         try {
-            if (ConfigManager.class.getClassLoader().getResources(customPath).hasMoreElements()) {
+            if (new File(customPath).exists() || ConfigManager.class.getClassLoader().getResources(customPath).hasMoreElements()) {
                 Properties customProps = internalGetProperties(customPath, null, configProfile);
                 props.putAll(customProps);
             }
@@ -156,7 +174,7 @@ public class ConfigManager {
         }
     }
 
-    private static String getCustomConfigPath(String path) {
+    private static String getCustomConfigFile(String path) {
         int index = path.lastIndexOf('.');
         if (index >= 0) {
             return path.substring(0, index) + ".user" + path.substring(index);
