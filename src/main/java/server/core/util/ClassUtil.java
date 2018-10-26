@@ -89,6 +89,10 @@ public class ClassUtil {
             }
         });
 
+        if (dirfiles == null) {
+            return;
+        }
+
         for (File file : dirfiles) {
             if (file.isDirectory()) {
                 findAndAddClassesInPackageByFile(packageName + "." + file.getName(),
