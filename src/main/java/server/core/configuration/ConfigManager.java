@@ -2,15 +2,16 @@ package server.core.configuration;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
-import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import server.core.util.StringUtil;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Properties;
 
 public class ConfigManager {
@@ -22,70 +23,78 @@ public class ConfigManager {
 
     private static String configProfile = "dev";
 
+    private static Properties configProps;
+
     static {
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,false);
 
-        Properties props = getProperties(configPath);
-        configProfile = props.getProperty("profile", configProfile);
+        loadConfig(true);
+    }
+
+    public static String getString(String key, String defaultValue) {
+        return configProps.getProperty(key, defaultValue);
     }
 
     public static <T> T readProfile(Class<T> clz) {
-        return internalRead(clz, configPath, null, configProfile);
+        return internalRead(clz, null);
     }
 
     public static <T> T readProfile(Class<T> clz, String rootKey) {
-        return internalRead(clz, configPath, rootKey, configProfile);
+        return internalRead(clz, rootKey);
     }
 
-    public static <T> T readConfigProfile(Class<T> clz, String configFile) {
-        return internalRead(clz, configFile, null, configProfile);
-    }
-
-    public static <T> T readConfigProfile(Class<T> clz, String configFile, String rootKey) {
-        return internalRead(clz, configFile, rootKey, configProfile);
-    }
-
-    public static <T> T read(Class<T> clz, String configFile) {
-        return internalRead(clz, configFile, null, null);
-    }
-
-    public static <T> T read(Class<T> clz, String configFile, String rootKey) {
-        return internalRead(clz, configFile, rootKey, null);
-    }
-
-    public static Configuration properties(String path) {
-        Configurations configs = new Configurations();
+    private static <T> T internalRead(Class<T> clz, String rootKey) {
         try {
-            return configs.properties(path);
-        } catch (ConfigurationException e) {
-            logger.error("fail to load config file, path={}", path, e);
-        }
-        return null;
-    }
-
-    public static Properties getProperties(String path) {
-        return internalGetProperties(path, null, null);
-    }
-
-    public static Properties getProperties(String path, String rootKey) {
-        return internalGetProperties(path, rootKey, null);
-    }
-
-    private static <T> T internalRead(Class<T> clz, String configFile, String rootKey, String profile) {
-        Properties props = internalGetProperties(configFile, rootKey, profile);
-        if (props == null || props.isEmpty()) {
-            return null;
-        }
-        try {
+            Properties props = internalGetProperties(rootKey);
             T obj = mapper.readPropertiesAs(props, clz);
             return obj;
         } catch (IOException e) {
-            logger.error("read class config failed, class={}, configFile={}, rootKey={}, profile={}", clz.getName(), configFile, rootKey, profile, e);
+            logger.error("read class config failed, class={}, rootKey={}, profile={}", clz.getName(), rootKey, e);
         }
         return null;
     }
 
-    private static Properties internalGetProperties(String path, String rootKey, String profile) {
+    private static void loadConfig(boolean withUserConfig) {
+        Properties tmpProps = internalGetProperties(configPath, null, null);
+        configProfile = tmpProps.getProperty("profile", configProfile);
+
+        configProps = internalGetProperties(configPath, null, configProfile);
+
+        if (!withUserConfig) {
+            return;
+        }
+
+        String customPath = getCustomConfigPath(configPath);
+        try {
+            if (ConfigManager.class.getClassLoader().getResources(customPath).hasMoreElements()) {
+                Properties customProps = internalGetProperties(customPath, null, configProfile);
+                configProps.putAll(customProps);
+            }
+        } catch (Exception e) {
+            logger.error("read custom file error, {}", customPath, e);
+        }
+    }
+
+    private static Properties internalGetProperties(String rootKey) {
+        if (StringUtil.isNullOrEmpty(rootKey)) {
+            return configProps;
+        }
+
+        Properties props = new Properties();
+        for (Map.Entry<Object, Object> entry : configProps.entrySet()) {
+            String key = (String)entry.getKey();
+            if (key.startsWith(rootKey)) {
+                if (rootKey.equals(key)) {
+                    continue;
+                }
+                String subKey = key.substring(rootKey.length() + 1);
+                props.setProperty(subKey, (String) entry.getValue());
+            }
+        }
+        return props;
+    }
+
+    private static Properties internalGetProperties(String path, String rootKey, String profile ) {
         Configurations configs = new Configurations();
         try {
             Properties props = new Properties();
@@ -116,8 +125,20 @@ public class ConfigManager {
         }
         while (it.hasNext()) {
             String key = it.next();
+            if (!isInvalidRootKey && key.equals(rootKey)) {
+                continue;
+            }
             String subKey = isInvalidRootKey ? key : key.substring(rootKey.length() + 1);
             props.setProperty(subKey, p.getString(key));
+        }
+    }
+
+    private static String getCustomConfigPath(String path) {
+        int index = path.lastIndexOf('.');
+        if (index >= 0) {
+            return path.substring(0, index) + ".user" + path.substring(index);
+        } else {
+            return path + ".user";
         }
     }
 }
