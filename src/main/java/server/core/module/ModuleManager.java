@@ -47,8 +47,8 @@ public class ModuleManager implements Iterable<IModule> {
         return false;
     }
 
-    public boolean reload() {
-        if (!ConfigManager.reload()) {
+    public boolean reload(boolean reloadConfig) {
+        if (reloadConfig && !ConfigManager.reload()) {
             return false;
         }
 

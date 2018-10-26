@@ -42,4 +42,8 @@ public class ThriftClient {
 
         return stub(config.getIp(), config.getPort(), clz);
     }
+
+    public static <T> T stub(Class<T> clz) {
+        return stub(clz, "backServer");
+    }
 }

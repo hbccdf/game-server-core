@@ -41,8 +41,16 @@ public class ConfigManager {
         return true;
     }
 
+    public static Properties getProperties() {
+        return configProps;
+    }
+
     public static String getString(String key, String defaultValue) {
         return configProps.getProperty(key, defaultValue);
+    }
+
+    public static void updateConfig(String key, String value) {
+        configProps.setProperty(key, value);
     }
 
     public static <T> T read(Class<T> clz) {

@@ -71,6 +71,7 @@ public class AbstractRemoteService extends AbstractService {
     private TMultiplexedProcessor initServer(int port) throws TTransportException {
         TMultiplexedProcessor multiProcessor = processors.get(port);
         if (multiProcessor != null) {
+            logger.info("start remote server {}, at port {}", this.getClass().getName(), port);
             return multiProcessor;
         }
 
