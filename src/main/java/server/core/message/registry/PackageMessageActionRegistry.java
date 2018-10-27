@@ -14,6 +14,7 @@ public class PackageMessageActionRegistry<K> extends AbstractMessageActionRegist
 
     private IInstaceFactory factory;
 
+    @SuppressWarnings("unchecked")
     public PackageMessageActionRegistry(String pn, IInstaceFactory factory) {
         super();
 
@@ -37,7 +38,8 @@ public class PackageMessageActionRegistry<K> extends AbstractMessageActionRegist
         }
     }
 
-    public <T extends IMessageAction> boolean reg(Class<T> clz) {
+    @SuppressWarnings("unchecked")
+    private  <T extends IMessageAction> boolean reg(Class<T> clz) {
         try {
             T handler = factory.newInstace(clz);
 

@@ -23,6 +23,7 @@ public abstract class AbstractEventAggregator implements IEventAggregator {
     };
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T extends IEvent> EventType<T> getEvent(Class<T> eventClass) {
         EventType<IEvent> list;
         for (Class<? super T> clz = eventClass; clz != Object.class; clz = clz.getSuperclass()) {
@@ -35,6 +36,7 @@ public abstract class AbstractEventAggregator implements IEventAggregator {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T extends IEvent> EventType<T> regEvent(Class<T> eventClass) {
         EventType<IEvent> eventType = registry.get(eventClass);
         if (eventType == null) {
@@ -45,6 +47,7 @@ public abstract class AbstractEventAggregator implements IEventAggregator {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T extends IEvent> EventType<T> remEvent(Class<T> eventClass) {
         return (EventType<T>)registry.remove(eventClass);
     }

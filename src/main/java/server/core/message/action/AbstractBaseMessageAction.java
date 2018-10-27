@@ -12,6 +12,7 @@ public abstract class AbstractBaseMessageAction<T extends TBase<?, ?>, M extends
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void processMessage(ChannelHandlerContext ctx, Object req) throws Exception {
         M msg = (M)req;
         T tpl = newObject();

@@ -92,11 +92,11 @@ public class ServiceProxy implements InvocationHandler {
 
     private TServiceClient buildClient(Class<?> si, String ip, int port) throws ClassNotFoundException, TTransportException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         String serviceName = si.getName();
-        Class clazzClient = Class.forName(serviceName.substring(0, serviceName.lastIndexOf("$")) + "$Client");
+        Class<?> clazzClient = Class.forName(serviceName.substring(0, serviceName.lastIndexOf("$")) + "$Client");
         TTransport transport = new TFramedTransport(new TSocket(ip, port), 10240);
         transport.open();
         TProtocol p = new TCompactProtocol(transport);
-        Constructor constructor = clazzClient.getConstructor(TProtocol.class);
+        Constructor<?> constructor = clazzClient.getConstructor(TProtocol.class);
         return (TServiceClient) constructor.newInstance(new TMultiplexedProtocol(p, si.getCanonicalName()));
     }
 }

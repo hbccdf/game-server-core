@@ -33,7 +33,7 @@ public class ModuleManager implements Iterable<IModule> {
             for (String m : modules) {
                 Class<?> clz = Class.forName(m);
                 if(IModule.class.isAssignableFrom(clz)){
-                    if (!load((Class<IModule>) clz)) {
+                    if (!load(clz.asSubclass(IModule.class))) {
                         return false;
                     }
                 }else{
@@ -88,9 +88,7 @@ public class ModuleManager implements Iterable<IModule> {
         if(!modules.containsKey(clz)){
             T module = clz.newInstance();
             modules.put(clz, module);
-            if (!module.initialize()) {
-                return false;
-            }
+            return module.initialize();
         }
         return true;
     }

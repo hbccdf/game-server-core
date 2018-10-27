@@ -75,6 +75,7 @@ public final class ReconnectingThriftClient {
      * @param <C>
      * @return
      */
+    @SuppressWarnings("unchecked")
     public static <T extends TServiceClient, C> C wrap(T baseClient, Class<C> clientInterface, Options options) {
         Object proxyObject = Proxy.newProxyInstance(clientInterface.getClassLoader(),
                 new Class<?>[] { clientInterface },
@@ -92,6 +93,7 @@ public final class ReconnectingThriftClient {
      * @param <C>
      * @return
      */
+    @SuppressWarnings("unchecked")
     public static <T extends TServiceClient, C> C wrap(T baseClient, Options options) {
         Class<?>[] interfaces = baseClient.getClass().getInterfaces();
 

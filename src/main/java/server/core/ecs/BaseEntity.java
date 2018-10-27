@@ -21,9 +21,7 @@ public abstract class BaseEntity implements IEntity {
 
     @Override
     public void update(long now) {
-        Iterator<IComponent> it = components.values().iterator();
-        while (it.hasNext()) {
-            IComponent next = it.next();
+        for (IComponent next : components.values()) {
             if (next != null) {
                 next.update(now);
             }
@@ -31,6 +29,7 @@ public abstract class BaseEntity implements IEntity {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T extends IComponent> T getComponent(Class<T> componentType) {
         return (T)components.get(componentType);
     }
@@ -44,6 +43,7 @@ public abstract class BaseEntity implements IEntity {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T extends IComponent> T removeComponent(Class<T> componentType) {
         return (T)components.remove(componentType);
     }
@@ -56,9 +56,7 @@ public abstract class BaseEntity implements IEntity {
     protected abstract <T extends IComponent> T newComponent(Class<T> componentType);
 
     public void enable(boolean enable) {
-        Iterator<IComponent> it = iterator();
-        while (it.hasNext()) {
-            IComponent comp = it.next();
+        for (IComponent comp : this) {
             if (comp != null) {
                 if (enable) {
                     comp.start();

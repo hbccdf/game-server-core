@@ -43,11 +43,11 @@ public class ThriftClient {
         try {
             int idx = clz.getName().lastIndexOf('$');
             String clzClientName = clz.getName().substring(0, idx) + "$Client";
-            Class clzClient = Class.forName(clzClientName);
+            Class<?> clzClient = Class.forName(clzClientName);
 
             TTransport transport = new TFramedTransport(new TSocket(ip, port), 10240);
             TProtocol p = new TCompactProtocol(transport);
-            Constructor<T> constructor = clzClient.getConstructor(TProtocol.class);
+            Constructor<?> constructor = clzClient.getConstructor(TProtocol.class);
             TServiceClient baseClient = (TServiceClient) constructor.newInstance(new TMultiplexedProtocol(p, clz.getCanonicalName()));
             return ReconnectingThriftClient.wrap(baseClient, options);
         } catch (Exception e) {
