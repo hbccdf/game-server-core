@@ -51,6 +51,10 @@ public class ConfigManager {
         return configProps.getProperty(key, defaultValue);
     }
 
+    public static final String getProfile() {
+        return configProfile;
+    }
+
     public static void updateConfig(String key, String value) {
         configProps.setProperty(key, value);
     }
