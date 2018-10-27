@@ -17,7 +17,29 @@ import java.lang.reflect.Constructor;
 public class ThriftClient {
     private static final Logger logger = LoggerFactory.getLogger(ThriftClient.class);
 
-    public static <T> T stub(String ip, int port, Class<T> clz) {
+    public static <T> T stub(Class<T> clz, String ip, int port, int numRetries, int timeBetweenRetry) {
+        return internalStub(ip, port, clz, new ReconnectingThriftClient.Options(numRetries, timeBetweenRetry));
+    }
+
+    public static <T> T stub(Class<T> clz, String ip, int port) {
+        return internalStub(ip, port, clz, ReconnectingThriftClient.Options.defaults());
+    }
+
+    public static <T> T stub(Class<T> clz, String configRootKey) {
+        RemoteServerConfig config = ConfigManager.read(RemoteServerConfig.class, configRootKey);
+        if (config == null) {
+            return null;
+        }
+
+        return stub(clz, config.getIp(), config.getPort());
+    }
+
+    public static <T> T stub(Class<T> clz) {
+        return stub(clz, "backServer");
+    }
+
+
+    private static <T> T internalStub(String ip, int port, Class<T> clz, ReconnectingThriftClient.Options options) {
         try {
             int idx = clz.getName().lastIndexOf('$');
             String clzClientName = clz.getName().substring(0, idx) + "$Client";
@@ -27,23 +49,10 @@ public class ThriftClient {
             TProtocol p = new TCompactProtocol(transport);
             Constructor<T> constructor = clzClient.getConstructor(TProtocol.class);
             TServiceClient baseClient = (TServiceClient) constructor.newInstance(new TMultiplexedProtocol(p, clz.getCanonicalName()));
-            return ReconnectingThriftClient.wrap(baseClient);
+            return ReconnectingThriftClient.wrap(baseClient, options);
         } catch (Exception e) {
             logger.error("proxy client error: {}", clz, e);
         }
         return null;
-    }
-
-    public static <T> T stub(Class<T> clz, String configRootKey) {
-        RemoteServerConfig config = ConfigManager.read(RemoteServerConfig.class, configRootKey);
-        if (config == null) {
-            return null;
-        }
-
-        return stub(config.getIp(), config.getPort(), clz);
-    }
-
-    public static <T> T stub(Class<T> clz) {
-        return stub(clz, "backServer");
     }
 }
