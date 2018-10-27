@@ -98,6 +98,13 @@
         </dependency>
 
         <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.16.18</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
             <groupId>com.cytxcn.game</groupId>
             <artifactId>network</artifactId>
             <version>0.0.1</version>
