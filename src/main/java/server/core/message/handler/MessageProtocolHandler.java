@@ -27,6 +27,7 @@ public class MessageProtocolHandler<T extends BaseMessage<?>> implements IProtoc
     @Override
     public void sessionClosed(ChannelHandlerContext ctx) {
         logger.info("session closed: {}", ctx);
+        ctx.close();
     }
 
     @Override
@@ -47,6 +48,7 @@ public class MessageProtocolHandler<T extends BaseMessage<?>> implements IProtoc
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         logger.error("exception caught: ", cause);
+        ctx.close();
     }
 
     @Override
