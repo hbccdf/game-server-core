@@ -2,6 +2,7 @@ package server.core.util;
 
 import org.apache.thrift.TBase;
 import org.apache.thrift.TException;
+import org.apache.thrift.TSerializable;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.protocol.TJSONProtocol;
@@ -50,5 +51,17 @@ public class ThriftUtil {
             tp = new TCompactProtocol(buf);
         }
         return tp;
+    }
+
+    public static Object unmarshal(Object object, byte[] data) throws TException {
+        if (!TBase.class.isAssignableFrom(object.getClass())) {
+            throw new TException("object is not TBase, class is " + object.getClass().getName());
+        }
+        TMemoryBuffer buf = new TMemoryBuffer(32);
+        buf.write(data);
+        TProtocol tp = getProto(DEFAULT_THRIFT_PROTOCOL, buf);
+
+        ((TSerializable)object).read(tp);
+        return object;
     }
 }
