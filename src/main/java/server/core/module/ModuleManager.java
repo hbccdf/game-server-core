@@ -21,7 +21,6 @@ public class ModuleManager implements Iterable<IModule> {
     private HashMap<Class<?>, IModule> modules = new HashMap<>();
 
     private ModuleManager(){
-
     }
 
     public boolean initialize(String config) {
@@ -31,13 +30,22 @@ public class ModuleManager implements Iterable<IModule> {
             XMLConfiguration xml = builder.getConfiguration();
             List<String> modules = xml.getList(String.class, CONF_NODE);
             for (String m : modules) {
-                Class<?> clz = Class.forName(m);
-                if(IModule.class.isAssignableFrom(clz)){
-                    if (!load(clz.asSubclass(IModule.class))) {
-                        return false;
-                    }
-                }else{
-                    throw new ConfigurationException("class must implements IModule. class= " + clz);
+                if (!load(m)) {
+                    return false;
+                }
+            }
+            return true;
+        } catch (Exception e) {
+            log.error("fail to load modules. ", e);
+        }
+        return false;
+    }
+
+    public boolean init(String... modules) {
+        try {
+            for (String m : modules) {
+                if (!load(m)) {
+                    return false;
                 }
             }
             return true;
@@ -89,6 +97,18 @@ public class ModuleManager implements Iterable<IModule> {
             T module = clz.newInstance();
             modules.put(clz, module);
             return module.initialize();
+        }
+        return true;
+    }
+
+    private boolean load(String className) throws ClassNotFoundException, IllegalAccessException, InstantiationException, ConfigurationException {
+        Class<?> clz = Class.forName(className);
+        if(IModule.class.isAssignableFrom(clz)){
+            if (!load(clz.asSubclass(IModule.class))) {
+                return false;
+            }
+        }else{
+            throw new ConfigurationException("class must implements IModule. class= " + className);
         }
         return true;
     }
