@@ -61,10 +61,17 @@ public class ConfigManager {
 
     public static boolean writeCustomConfig(Map<String, String> configs) {
         String customPath = getCustomConfigFile(configPath);
+        Properties props = internalGetProperties(customPath, null, null);
+        if (props == null) {
+            props = new Properties();
+        }
+        for (Map.Entry<String, String> entry : configs.entrySet()) {
+            props.setProperty(entry.getKey(), entry.getValue());
+        }
         try (FileWriter fw = new FileWriter(customPath)) {
             StringBuilder sb = new StringBuilder();
-            for (Map.Entry<String, String> entry : configs.entrySet()) {
-                sb.append(entry.getKey()).append("=").append(entry.getValue()).append("\n");
+            for (Map.Entry<Object, Object> entry : props.entrySet()) {
+                sb.append((String)entry.getKey()).append("=").append((String)entry.getValue()).append("\n");
             }
             fw.write(sb.toString());
             fw.flush();
