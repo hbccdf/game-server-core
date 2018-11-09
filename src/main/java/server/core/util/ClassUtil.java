@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.net.JarURLConnection;
 import java.net.URL;
@@ -19,9 +18,10 @@ public class ClassUtil {
 
     public static Set<Class<?>> getClasses(String pack) {
 
-        Set<Class<?>> classes = new LinkedHashSet<Class<?>>();
-        if(pack == null)
+        Set<Class<?>> classes = new LinkedHashSet<>();
+        if (pack == null) {
             return classes;
+        }
 
         boolean recursive = true;
         String packageName = pack;
@@ -34,7 +34,7 @@ public class ClassUtil {
                 String protocol = url.getProtocol();
                 if ("file".equals(protocol)) {
                     String filePath = URLDecoder.decode(url.getFile(), "UTF-8");
-                    findAndAddClassesInPackageByFile(packageName, filePath, recursive, classes);
+                    findAndAddClassesInPackageByFile(packageName, filePath, true, classes);
                 } else if ("jar".equals(protocol)) {
                     JarFile jar;
                     try {
@@ -82,18 +82,13 @@ public class ClassUtil {
             return;
         }
 
-        File[] dirfiles = dir.listFiles(new FileFilter() {
-            @Override
-            public boolean accept(File file) {
-                return (recursive && file.isDirectory()) || (file.getName().endsWith(".class"));
-            }
-        });
+        File[] dirFiles = dir.listFiles(file -> (recursive && file.isDirectory()) || (file.getName().endsWith(".class")));
 
-        if (dirfiles == null) {
+        if (dirFiles == null) {
             return;
         }
 
-        for (File file : dirfiles) {
+        for (File file : dirFiles) {
             if (file.isDirectory()) {
                 findAndAddClassesInPackageByFile(packageName + "." + file.getName(),
                         file.getAbsolutePath(), recursive, classes);

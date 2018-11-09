@@ -28,6 +28,11 @@ public class ServiceProxy implements InvocationHandler {
 
     private TServiceClient client = null;
 
+    private static final String INITIALIZE_NAME = "initialize";
+    private static final String ISVALID_NAME = "isValid";
+    private static final String RELEASE_NAME = "release";
+    private static final String RELOAD_NAME = "reload";
+
     public ServiceProxy(Class<?> serviceInterface, String configRootKey) {
         this.serviceInterface = serviceInterface;
         this.configRootKey = configRootKey;
@@ -37,7 +42,7 @@ public class ServiceProxy implements InvocationHandler {
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         synchronized (this) {
             String methodName = method.getName();
-            if ("initialize".equals(methodName)) {
+            if (INITIALIZE_NAME.equals(methodName)) {
                 try {
                     config = ConfigManager.read(RemoteServerConfig.class, configRootKey);
                     if (config == null) {
@@ -51,12 +56,12 @@ public class ServiceProxy implements InvocationHandler {
                 }
                 return false;
 
-            } else if ("isValid".equals(methodName)) {
+            } else if (ISVALID_NAME.equals(methodName)) {
                 return alive();
-            } else if ("release".equals(methodName)) {
+            } else if (RELEASE_NAME.equals(methodName)) {
                 destroyConnection();
                 return null;
-            } else if("reload".equals(methodName)) {
+            } else if(RELOAD_NAME.equals(methodName)) {
                 return null;
             } else {
                 if (!alive()) {

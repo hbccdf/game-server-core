@@ -1,7 +1,7 @@
 package server.core.service.factory;
 
 import com.google.inject.AbstractModule;
-import server.core.di.GuiceInjector;
+import server.core.di.AbstractGuiceInjector;
 
 public class ServiceGuiceInjector extends ServiceInjector {
     public ServiceGuiceInjector() {
@@ -14,7 +14,7 @@ public class ServiceGuiceInjector extends ServiceInjector {
     }
 
     public ServiceGuiceInjector(AbstractModule binder) {
-        super(new GuiceInjector(){
+        super(new AbstractGuiceInjector(){
             @Override
             protected AbstractModule newBinder() {
                 return binder;

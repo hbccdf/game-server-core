@@ -1,7 +1,7 @@
 package server.core.service.factory;
 
-public interface IInstaceFactory {
-    <T> T newInstace(Class<T> classType);
+public interface IInstanceFactory {
+    <T> T newInstance(Class<T> classType);
 
     void injectInstance(Object object);
 

@@ -2,7 +2,7 @@ package server.core.di;
 
 import com.google.inject.AbstractModule;
 
-public class DefaultGuiceInjector extends GuiceInjector{
+public class DefaultGuiceInjector extends AbstractGuiceInjector {
     public static final IInjector INSTANCE = new DefaultGuiceInjector();
 
     private DefaultGuiceInjector() {

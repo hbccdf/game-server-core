@@ -3,7 +3,7 @@ package server.core.message.registry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import server.core.message.action.IMessageAction;
-import server.core.service.factory.IInstaceFactory;
+import server.core.service.factory.IInstanceFactory;
 import server.core.util.ClassUtil;
 
 import java.lang.reflect.Modifier;
@@ -12,10 +12,10 @@ import java.util.Set;
 public class PackageMessageActionRegistry<K> extends AbstractMessageActionRegistry<K> {
     private static final Logger logger = LoggerFactory.getLogger(PackageMessageActionRegistry.class);
 
-    private IInstaceFactory factory;
+    private IInstanceFactory factory;
 
     @SuppressWarnings("unchecked")
-    public PackageMessageActionRegistry(String pn, IInstaceFactory factory) {
+    public PackageMessageActionRegistry(String pn, IInstanceFactory factory) {
         super();
 
         this.factory = factory;
@@ -41,11 +41,11 @@ public class PackageMessageActionRegistry<K> extends AbstractMessageActionRegist
     @SuppressWarnings("unchecked")
     private  <T extends IMessageAction> boolean reg(Class<T> clz) {
         try {
-            T handler = factory.newInstace(clz);
+            T handler = factory.newInstance(clz);
 
             K command = (K) handler.getId();
             if (contain(command)) {
-                throw new IllegalStateException("message action already registed, clz=" + clz);
+                throw new IllegalStateException("message action already registered, clz=" + clz);
             }
             add(command, handler);
 

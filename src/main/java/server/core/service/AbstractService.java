@@ -2,7 +2,7 @@ package server.core.service;
 
 import com.google.inject.Inject;
 import server.core.module.IServiceHolder;
-import server.core.service.factory.IInstaceFactory;
+import server.core.service.factory.IInstanceFactory;
 
 public abstract class AbstractService implements IService {
 
@@ -10,13 +10,13 @@ public abstract class AbstractService implements IService {
     protected IServiceHolder holder;
 
     @Inject
-    protected IInstaceFactory factory;
+    protected IInstanceFactory factory;
 
     public IServiceHolder getHolder() {
         return holder;
     }
 
-    public IInstaceFactory getFactory() {
+    public IInstanceFactory getFactory() {
         return factory;
     }
 

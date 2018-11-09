@@ -8,7 +8,6 @@ import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.protocol.TJSONProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TMemoryBuffer;
-import org.apache.thrift.transport.TTransportException;
 
 public class ThriftUtil {
     public static final ThriftProtocol DEFAULT_THRIFT_PROTOCOL = ThriftProtocol.Compact;

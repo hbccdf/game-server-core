@@ -1,6 +1,6 @@
 package server.core.module;
 
-import server.core.service.factory.IInstaceFactory;
+import server.core.service.factory.IInstanceFactory;
 
 public interface IModule extends IServiceHolder {
     boolean initialize();
@@ -8,5 +8,5 @@ public interface IModule extends IServiceHolder {
     void release();
     void update(long now);
 
-    IInstaceFactory getInstanceFactory();
+    IInstanceFactory getInstanceFactory();
 }

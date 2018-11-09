@@ -87,7 +87,7 @@ public class AbstractRemoteService extends AbstractService {
         args.selectorThreads(2);
         args.workerThreads(4);
         TServer server = new TThreadedSelectorServer(args);
-        thread = new Thread(() -> server.serve());
+        thread = new Thread(server::serve);
         thread.start();
 
         logger.info("start remote server {}, at port {}", this.getClass().getName(), port);

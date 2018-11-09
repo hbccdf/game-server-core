@@ -6,12 +6,12 @@ import com.google.inject.Injector;
 
 import java.util.HashMap;
 
-public abstract class GuiceInjector implements IInjector {
+public abstract class AbstractGuiceInjector implements IInjector {
     private Injector injector;
 
     private HashMap<Class<?>, Object> instances = new HashMap<>();
 
-    public GuiceInjector() {
+    public AbstractGuiceInjector() {
         injector = Guice.createInjector(newBinders());
     }
 
@@ -27,8 +27,7 @@ public abstract class GuiceInjector implements IInjector {
     protected abstract AbstractModule newBinder();
 
     protected AbstractModule[] newBinders() {
-        AbstractModule[] modules = new AbstractModule[]{newBinder()};
-        return modules;
+        return new AbstractModule[]{newBinder()};
     }
 
     @Override

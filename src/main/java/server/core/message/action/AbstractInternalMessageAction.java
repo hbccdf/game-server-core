@@ -3,7 +3,6 @@ package server.core.message.action;
 import io.netty.channel.ChannelHandlerContext;
 import network.protocol.InternalMessage;
 import org.apache.thrift.TBase;
-import server.core.util.ThriftUtil;
 
 public abstract class AbstractInternalMessageAction<T extends TBase<?, ?>> extends AbstractBaseMessageAction<T, InternalMessage> {
 

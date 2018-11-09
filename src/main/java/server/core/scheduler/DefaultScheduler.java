@@ -3,7 +3,7 @@ package server.core.scheduler;
 import java.util.concurrent.*;
 
 public class DefaultScheduler implements IScheduler {
-    private ScheduledExecutorService threadPool = null;
+    private ScheduledExecutorService threadPool;
 
     public DefaultScheduler(int nThreads) {
         threadPool = Executors.newScheduledThreadPool(nThreads);

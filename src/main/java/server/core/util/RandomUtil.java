@@ -6,11 +6,11 @@ public class RandomUtil {
     public static final int BASE_CHANCE = 10000;
     private static final Random random = new Random();
 
-    public static final int random(int max) {
+    public static int random(int max) {
         return random.nextInt(max);
     }
 
-    public static final int random(int min, int max) {
+    public static int random(int min, int max) {
         return min + random(max);
     }
 

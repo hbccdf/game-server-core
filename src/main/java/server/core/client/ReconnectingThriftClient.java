@@ -79,7 +79,7 @@ public final class ReconnectingThriftClient {
     public static <T extends TServiceClient, C> C wrap(T baseClient, Class<C> clientInterface, Options options) {
         Object proxyObject = Proxy.newProxyInstance(clientInterface.getClassLoader(),
                 new Class<?>[] { clientInterface },
-                new ReconnectingClientProxy<T>(baseClient, options.getNumRetries(), options.getTimeBetweenRetries()));
+                new ReconnectingClientProxy<>(baseClient, options.getNumRetries(), options.getTimeBetweenRetries()));
 
         return (C)proxyObject;
     }
@@ -98,7 +98,7 @@ public final class ReconnectingThriftClient {
         Class<?>[] interfaces = baseClient.getClass().getInterfaces();
 
         for (Class<?> iface : interfaces) {
-            if (iface.getSimpleName().equals("Iface") && iface.getEnclosingClass().equals(baseClient.getClass().getEnclosingClass())) {
+            if ("Iface".equals(iface.getSimpleName()) && iface.getEnclosingClass().equals(baseClient.getClass().getEnclosingClass())) {
                 return (C)wrap(baseClient, iface, options);
             }
         }

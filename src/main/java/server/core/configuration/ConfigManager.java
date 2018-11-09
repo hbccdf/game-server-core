@@ -21,7 +21,7 @@ public class ConfigManager {
 
     private static final Logger logger = LoggerFactory.getLogger(ConfigManager.class);
 
-    private static final String configPath = "config.properties";
+    private static final String CONFIG_PATH = "config.properties";
 
     private static String configProfile = "dev";
 
@@ -51,7 +51,7 @@ public class ConfigManager {
         return configProps.getProperty(key, defaultValue);
     }
 
-    public static final String getProfile() {
+    public static String getProfile() {
         return configProfile;
     }
 
@@ -60,7 +60,7 @@ public class ConfigManager {
     }
 
     public static boolean writeCustomConfig(Map<String, String> configs) {
-        String customPath = getCustomConfigFile(configPath);
+        String customPath = getCustomConfigFile(CONFIG_PATH);
         Properties props = internalGetProperties(customPath, null, null);
         if (props == null) {
             props = new Properties();
@@ -93,8 +93,7 @@ public class ConfigManager {
     private static <T> T internalRead(Class<T> clz, String rootKey) {
         try {
             Properties props = internalGetProperties(rootKey);
-            T obj = mapper.readPropertiesAs(props, clz);
-            return obj;
+            return mapper.readPropertiesAs(props, clz);
         } catch (IOException e) {
             logger.error("read class config failed, class={}, rootKey={}, profile={}", clz.getName(), rootKey, e);
         }
@@ -102,22 +101,24 @@ public class ConfigManager {
     }
 
     private static void loadConfig(boolean withUserConfig) {
-        Properties props = internalGetProperties(configPath, null, null);
+        Properties props = internalGetProperties(CONFIG_PATH, null, null);
+        assert props != null;
         configProfile = props.getProperty("profile", configProfile);
 
         configProps = internalLoadConfig(withUserConfig);
     }
 
     private static Properties internalLoadConfig(boolean withUserConfig) {
-        Properties props = internalGetProperties(configPath, null, configProfile);
+        Properties props = internalGetProperties(CONFIG_PATH, null, configProfile);
         if (props == null || !withUserConfig) {
             return props;
         }
 
-        String customPath = getCustomConfigFile(configPath);
+        String customPath = getCustomConfigFile(CONFIG_PATH);
         try {
             if (new File(customPath).exists() || ConfigManager.class.getClassLoader().getResources(customPath).hasMoreElements()) {
                 Properties customProps = internalGetProperties(customPath, null, configProfile);
+                assert customProps != null;
                 props.putAll(customProps);
             }
         } catch (Exception e) {
@@ -152,13 +153,13 @@ public class ConfigManager {
             Properties props = new Properties();
             PropertiesConfiguration p = configs.properties(path);
             extractProperties(p, props, rootKey);
-            if (profile != null && !profile.equals("")) {
-                String prifileRootKey = profile;
-                boolean isInvalidRootKey = rootKey == null || rootKey.equals("");
+            if (!StringUtil.isNullOrEmpty(profile)) {
+                String profileRootKey = profile;
+                boolean isInvalidRootKey = StringUtil.isNullOrEmpty(rootKey);
                 if (!isInvalidRootKey) {
-                    prifileRootKey = profile + "." + rootKey;
+                    profileRootKey = profile + "." + rootKey;
                 }
-                extractProperties(p, props, prifileRootKey);
+                extractProperties(p, props, profileRootKey);
             }
             return props;
         } catch (ConfigurationException e) {
@@ -168,8 +169,8 @@ public class ConfigManager {
     }
 
     private static void extractProperties(PropertiesConfiguration p, Properties props, String rootKey) {
-        Iterator<String> it = null;
-        boolean isInvalidRootKey = rootKey == null || rootKey.equals("");
+        Iterator<String> it;
+        boolean isInvalidRootKey = StringUtil.isNullOrEmpty(rootKey);
         if (isInvalidRootKey) {
             it = p.getKeys();
         } else {

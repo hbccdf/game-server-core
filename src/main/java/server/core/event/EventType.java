@@ -1,18 +1,17 @@
 package server.core.event;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public abstract class EventType<T extends IEvent> {
-    private List<IEventListener<T>> listeners = null;
+    private List<IEventListener<T>> listeners;
 
     public EventType() {
         this(1);
     }
 
     public EventType(int capacity) {
-        this.listeners = new ArrayList<IEventListener<T>>(capacity);
+        this.listeners = new ArrayList<>(capacity);
     }
 
     public void subscribe(IEventListener<T> listener) {
@@ -26,9 +25,7 @@ public abstract class EventType<T extends IEvent> {
     }
 
     protected final void publish0(T event) {
-        Iterator<IEventListener<T>> it = listeners.iterator();
-        while (it.hasNext()) {
-            IEventListener<T> lst = it.next();
+        for (IEventListener<T> lst : listeners) {
             if (lst != null) {
                 lst.onEvent(event);
             }

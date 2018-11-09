@@ -7,7 +7,7 @@ import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import server.core.configuration.ConfigManager;
-import server.core.service.factory.IInstaceFactory;
+import server.core.service.factory.IInstanceFactory;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -30,7 +30,7 @@ public class ModuleManager implements Iterable<IModule> {
             XMLConfiguration xml = builder.getConfiguration();
             List<String> modules = xml.getList(String.class, CONF_NODE);
             for (String m : modules) {
-                if (!load(m)) {
+                if (!loadForName(m)) {
                     return false;
                 }
             }
@@ -44,7 +44,7 @@ public class ModuleManager implements Iterable<IModule> {
     public boolean init(String... modules) {
         try {
             for (String m : modules) {
-                if (!load(m)) {
+                if (!loadForName(m)) {
                     return false;
                 }
             }
@@ -83,7 +83,7 @@ public class ModuleManager implements Iterable<IModule> {
         return (T) modules.get(clz);
     }
 
-    public IInstaceFactory getInstanceFactory() {
+    public IInstanceFactory getInstanceFactory() {
         return iterator().next().getInstanceFactory();
     }
 
@@ -101,15 +101,12 @@ public class ModuleManager implements Iterable<IModule> {
         return true;
     }
 
-    private boolean load(String className) throws ClassNotFoundException, IllegalAccessException, InstantiationException, ConfigurationException {
+    private boolean loadForName(String className) throws ClassNotFoundException, IllegalAccessException, InstantiationException, ConfigurationException {
         Class<?> clz = Class.forName(className);
         if(IModule.class.isAssignableFrom(clz)){
-            if (!load(clz.asSubclass(IModule.class))) {
-                return false;
-            }
+            return load(clz.asSubclass(IModule.class));
         }else{
             throw new ConfigurationException("class must implements IModule. class= " + className);
         }
-        return true;
     }
 }

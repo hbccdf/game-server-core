@@ -10,11 +10,6 @@ public class SingleThreadEventType<T extends IEvent> extends EventType<T> {
 
     @Override
     public void publish(final T event) {
-        eventSource.getExecutor().execute(new Runnable() {
-            @Override
-            public void run() {
-                publish0(event);
-            }
-        });
+        eventSource.getExecutor().execute(() -> publish0(event));
     }
 }
