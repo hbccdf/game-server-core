@@ -45,7 +45,7 @@ public class ThriftClient {
             String clzClientName = clz.getName().substring(0, idx) + "$Client";
             Class<?> clzClient = Class.forName(clzClientName);
 
-            TTransport transport = new TFramedTransport(new TSocket(ip, port), 10240);
+            TTransport transport = new TFramedTransport(new TSocket(ip, port));
             TProtocol p = new TCompactProtocol(transport);
             Constructor<?> constructor = clzClient.getConstructor(TProtocol.class);
             TServiceClient baseClient = (TServiceClient) constructor.newInstance(new TMultiplexedProtocol(p, clz.getCanonicalName()));
