@@ -41,7 +41,7 @@ public class PackageMessageActionRegistry<K> extends AbstractMessageActionRegist
     @SuppressWarnings("unchecked")
     private  <T extends IMessageAction> boolean reg(Class<T> clz) {
         try {
-            T handler = factory.newInstance(clz);
+            T handler = factory.getInstance(clz);
 
             K command = (K) handler.getId();
             if (contain(command)) {

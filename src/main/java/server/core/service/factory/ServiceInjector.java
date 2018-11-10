@@ -31,7 +31,7 @@ public class ServiceInjector extends AbstractServiceFactory {
     }
 
     @Override
-    public <T> T newInstance(Class<T> classType) {
+    public <T> T getInstance(Class<T> classType) {
         return injector.getInstance(classType);
     }
 

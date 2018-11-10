@@ -1,17 +1,16 @@
 package server.core.util;
 
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class RandomUtil {
     public static final int BASE_CHANCE = 10000;
-    private static final Random random = new Random();
 
     public static int random(int max) {
-        return random.nextInt(max);
+        return ThreadLocalRandom.current().nextInt(max);
     }
 
     public static int random(int min, int max) {
-        return min + random(max);
+        return min + random(max - min);
     }
 
     public static int random(int[] table) {
@@ -20,7 +19,7 @@ public class RandomUtil {
     }
 
     public static boolean hit(int chance, int total){
-        return chance < RandomUtil.random(total);
+        return chance < random(total);
     }
 
     public static boolean hit(int chance){
@@ -28,7 +27,7 @@ public class RandomUtil {
     }
 
     public static boolean miss(int chance, int total){
-        return chance > RandomUtil.random(total);
+        return chance > random(total);
     }
 
     public static boolean miss(int chance){
