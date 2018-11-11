@@ -4,7 +4,6 @@ import java.lang.reflect.Field;
 
 public class ClassReflection {
     public static void set(Object source, String fieldName, Object value) {
-        //inject
         for (Class<?> clz = source.getClass(); clz != Object.class; clz = clz.getSuperclass()) {
             try {
                 Field field = clz.getDeclaredField(fieldName);

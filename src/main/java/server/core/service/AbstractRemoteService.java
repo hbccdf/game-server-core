@@ -26,11 +26,11 @@ public class AbstractRemoteService extends AbstractService {
 
     private static final HashMap<Integer, TMultiplexedProcessor> processors = new HashMap<>();
 
+    private final String configRootKey;
+
+    private final String className = this.getClass().getName();
+
     private Thread thread = null;
-
-    private String configRootKey;
-
-    private String className = this.getClass().getName();
 
     public AbstractRemoteService(String configRootKey) {
         this.configRootKey = configRootKey;

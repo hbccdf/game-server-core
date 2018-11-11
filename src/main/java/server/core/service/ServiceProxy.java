@@ -20,13 +20,13 @@ import java.lang.reflect.Method;
 public class ServiceProxy implements InvocationHandler {
     private static final Logger logger = LoggerFactory.getLogger(ServiceProxy.class);
 
-    private Class<?> serviceInterface;
+    private final Class<?> serviceInterface;
 
-    private String configRootKey;
+    private final String configRootKey;
 
     private RemoteServerConfig config;
 
-    private TServiceClient client = null;
+    private TServiceClient client;
 
     private static final String INITIALIZE_NAME = "initialize";
     private static final String ISVALID_NAME = "isValid";
