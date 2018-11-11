@@ -6,7 +6,6 @@ import server.core.message.action.IMessageAction;
 import server.core.service.factory.IInstanceFactory;
 import server.core.util.ClassUtil;
 
-import java.lang.reflect.Modifier;
 import java.util.Set;
 
 public class PackageMessageActionRegistry<K> extends AbstractMessageActionRegistry<K> {
@@ -14,27 +13,17 @@ public class PackageMessageActionRegistry<K> extends AbstractMessageActionRegist
 
     private IInstanceFactory factory;
 
-    @SuppressWarnings("unchecked")
     public PackageMessageActionRegistry(String pn, IInstanceFactory factory) {
         super();
 
         this.factory = factory;
 
-        Set<Class<?>> classes = ClassUtil.getClasses(pn);
+        Set<Class<?>> classes = ClassUtil.getAllSubclasses(pn, IMessageAction.class);
         for (Class<?> clz : classes) {
-            if (IMessageAction.class.isAssignableFrom(clz)) {
-                if (clz.isInterface()) {
-                    continue;
-                }
-                if (Modifier.isAbstract(clz.getModifiers())) {
-                    continue;
-                }
-                if (clz.isAnnotationPresent(Deprecated.class)) {
-                    continue;
-                }
-                Class<IMessageAction> cma = (Class<IMessageAction>) clz;
-                reg(cma);
+            if (clz.isAnnotationPresent(Deprecated.class)) {
+                continue;
             }
+            reg(clz.asSubclass(IMessageAction.class));
         }
     }
 
