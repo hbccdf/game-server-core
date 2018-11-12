@@ -26,22 +26,13 @@ public class MessageBus {
             Method[] methods = clz.getDeclaredMethods();
             for (Method m : methods) {
                 Message msg = m.getAnnotation(Message.class);
-                if (msg != null && msg.value() != null) {
-                    Class<?> msgClass = msg.value();
-                    Integer msgId = ProtocolManager.getId(msgClass);
-                    if (msgId > 0) {
-                        msgs.computeIfAbsent(msgId, k -> new LinkedList<>());
-                        msgs.get(msgId).add(new BusNode(factory.getInstance(clz), m));
-                    }
+                if (msg != null) {
+                    reg(ProtocolManager.getId(msg.value()), clz, m);
                 }
 
                 MessageId msgId = m.getAnnotation(MessageId.class);
-                if (msgId != null && msgId.value() > 0) {
-                    Class<?> msgClass = ProtocolManager.getClass(msgId.value());
-                    if (msgClass != null) {
-                        msgs.computeIfAbsent(msgId.value(), k -> new LinkedList<>());
-                        msgs.get(msgId).add(new BusNode(factory.getInstance(clz), m));
-                    }
+                if (msgId != null && ProtocolManager.getClass(msgId.value()) != null) {
+                    reg(msgId.value(), clz, m);
                 }
             }
         }
@@ -58,6 +49,13 @@ public class MessageBus {
         List<BusNode> list = msgs.get(id);
         for (BusNode node : list) {
             node.invoke(obj);
+        }
+    }
+
+    private void reg(Integer msgId, Class<?> clz, Method method) {
+        if (msgId > 0 && clz != null) {
+            msgs.computeIfAbsent(msgId, k -> new LinkedList<>());
+            msgs.get(msgId).add(new BusNode(factory.getInstance(clz), method));
         }
     }
 
