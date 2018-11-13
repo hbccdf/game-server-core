@@ -6,8 +6,8 @@ import org.apache.thrift.TBase;
 
 public abstract class AbstractInternalMessageAction<T extends TBase<?, ?>> extends AbstractBaseMessageAction<T, InternalMessage> {
 
-    public AbstractInternalMessageAction(int id) {
-        super(id);
+    public AbstractInternalMessageAction() {
+        super();
     }
 
     @Override

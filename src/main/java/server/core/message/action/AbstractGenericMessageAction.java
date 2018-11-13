@@ -7,11 +7,10 @@ public abstract class AbstractGenericMessageAction implements IMessageAction {
 
     @Inject
     private IServiceHolder holder;
-    private int id;
+    protected int id;
 
-    public AbstractGenericMessageAction(int id) {
-        super();
-        this.id = id;
+    public AbstractGenericMessageAction() {
+        this.id = 0;
     }
 
     public <T> T getService(Class<T> clz) {

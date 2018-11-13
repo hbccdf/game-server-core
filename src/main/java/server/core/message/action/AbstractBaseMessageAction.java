@@ -7,8 +7,8 @@ import server.core.util.ThriftUtil;
 
 public abstract class AbstractBaseMessageAction<T extends TBase<?, ?>, M extends BaseMessage<?>> extends AbstractGenericMessageAction {
 
-    public AbstractBaseMessageAction(int id) {
-        super(id);
+    public AbstractBaseMessageAction() {
+        super();
     }
 
     @Override
