@@ -69,7 +69,7 @@ public class ModuleManager implements Iterable<IModule> {
         return (T) modules.get(clz);
     }
 
-    public IInstanceFactory getInstanceFactory() {
+    public IInstanceFactory getFactory() {
         return iterator().next().getFactory();
     }
 
