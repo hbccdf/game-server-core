@@ -35,7 +35,7 @@ public class MessageBus {
             return;
         }
 
-       msgs.get(id).stream().forEach(BusNode::invoke);
+       msgs.get(id).forEach(b -> b.invoke(obj));
     }
 
     private void reg(Method m, Class<?> clz) {

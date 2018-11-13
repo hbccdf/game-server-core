@@ -243,8 +243,11 @@ public class ClassUtil {
 
     public static List<Class<?>> getSuperClass(Class<?> clzz, boolean recursive) {
         List<Class<?>> list = new ArrayList<>();
-        for (Class<?> clz = clzz; recursive && clz != Object.class; clz = clzz.getSuperclass()) {
+        for (Class<?> clz = clzz; clz != Object.class; clz = clz.getSuperclass()) {
             list.add(clz);
+            if (!recursive) {
+                break;
+            }
         }
         return list;
     }

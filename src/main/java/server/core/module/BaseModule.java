@@ -91,9 +91,9 @@ public class BaseModule implements IModule {
             try {
                 IService s = (IService) obj;
                 s.release();
-                log.info("release service success: ", obj.getClass().getCanonicalName());
+                log.info("release service success: {}", obj.getClass().getCanonicalName());
             } catch (Exception e) {
-                log.error("release service failed: ", obj.getClass().getCanonicalName(), e);
+                log.error("release service failed: {}", obj.getClass().getCanonicalName(), e);
             }
         }));
         services.clear();
