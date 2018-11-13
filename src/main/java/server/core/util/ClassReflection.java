@@ -1,16 +1,21 @@
 package server.core.util;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.lang.reflect.Field;
 
+@Slf4j
 public class ClassReflection {
     public static void set(Object source, String fieldName, Object value) {
         for (Class<?> clz = source.getClass(); clz != Object.class; clz = clz.getSuperclass()) {
             try {
                 Field field = clz.getDeclaredField(fieldName);
-                field.setAccessible(true);
-                field.set(source, value);
+                if (field != null) {
+                    field.setAccessible(true);
+                    field.set(source, value);
+                }
             } catch (Exception e) {
-                //do nothing
+                log.error("", e);
             }
         }
     }

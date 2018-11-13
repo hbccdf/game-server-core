@@ -83,7 +83,7 @@ public class ModuleManager implements Iterable<IModule> {
     }
 
     public IInstanceFactory getInstanceFactory() {
-        return iterator().next().getInstanceFactory();
+        return iterator().next().getFactory();
     }
 
     @Override

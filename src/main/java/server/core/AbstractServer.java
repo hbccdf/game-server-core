@@ -1,15 +1,14 @@
 package server.core;
 
 public abstract class AbstractServer {
-    private int interval = 50;
+    private final int interval;
     private boolean running = true;
 
     public AbstractServer() {
-        super();
+        this(50);
     }
 
     public AbstractServer(int interval) {
-        super();
         this.interval = interval;
     }
 

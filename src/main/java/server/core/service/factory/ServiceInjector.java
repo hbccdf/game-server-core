@@ -2,11 +2,11 @@ package server.core.service.factory;
 
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import server.core.di.IInjector;
+import server.core.util.ClassUtil;
 
 import java.lang.reflect.Field;
+import java.util.List;
 
 @Slf4j
 public class ServiceInjector extends AbstractServiceFactory {
@@ -42,15 +42,11 @@ public class ServiceInjector extends AbstractServiceFactory {
         }
 
         try {
-            for (Class<?> clz = object.getClass(); clz != Object.class; clz = clz.getSuperclass()) {
-                for (Field field : clz.getDeclaredFields()) {
-                    if (field.isAnnotationPresent(Inject.class)) {
-                        field.setAccessible(true);
-
-                        Object injectObject = injector.getInstance(field.getType());
-                        field.set(object, injectObject);
-                    }
-                }
+            List<Field> fileds = ClassUtil.getFieldsWithAllAnnotations(object.getClass(), true, Inject.class);
+            for (Field f : fileds) {
+                f.setAccessible(true);
+                Object injectObject = injector.getInstance(f.getType());
+                f.set(object, injectObject);
             }
         } catch (Exception e) {
             log.error("inject object {} failed", object.getClass().getName(), e);

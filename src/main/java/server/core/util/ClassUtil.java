@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.JarURLConnection;
 import java.net.URL;
@@ -20,6 +22,10 @@ public class ClassUtil {
      * 默认过滤器（无实现）
      */
     private final static Predicate<Class<?>> EMPTY_FILTER = clazz -> true;
+
+    private final static Predicate<Method> EMPTY_METHOD_FILTER = m -> true;
+
+    private final static Predicate<Field> EMPTY_FIELD_FILTER = f -> true;
 
     /**
      * 扫描目录下的所有class文件
@@ -196,5 +202,78 @@ public class ClassUtil {
             }
         }
         return result;
+    }
+
+    @SafeVarargs
+    public static List<Method> getMethodsWithAllAnnotations(Class<?> clzz, boolean recursive, Class<? extends Annotation> ... annotationClasses) {
+        return getMethods(clzz, recursive, m -> allMatch(m.getDeclaredAnnotations(), annotationClasses));
+    }
+
+    @SafeVarargs
+    public static List<Method> getMethodsWithAnyAnnotations(Class<?> clzz, boolean recursive, Class<? extends Annotation> ... annotationClasses) {
+        return getMethods(clzz, recursive, m -> anyMatch(m.getDeclaredAnnotations(), annotationClasses));
+    }
+
+    @SafeVarargs
+    public static List<Field> getFieldsWithAllAnnotations(Class<?> clzz, boolean recursive, Class<? extends Annotation>... annotationClasses) {
+        return getFields(clzz, recursive, f -> allMatch(f.getDeclaredAnnotations(), annotationClasses));
+    }
+
+    @SafeVarargs
+    public static List<Field> getFieldsWithAnyAnnotations(Class<?> clzz, boolean recursive, Class<? extends Annotation>... annotationClasses) {
+        return getFields(clzz, recursive, f -> anyMatch(f.getDeclaredAnnotations(), annotationClasses));
+    }
+
+    public static List<Field> getFields(Class<?> clzz, boolean recursive) {
+        return getFields(clzz, recursive, EMPTY_FIELD_FILTER);
+    }
+
+    public static List<Method> getMethods(Class<?> clzz, boolean recursive) {
+        return getMethods(clzz, recursive, EMPTY_METHOD_FILTER);
+    }
+
+    public static List<Method> getMethods(Class<?> clzz, boolean recursive, Predicate<Method> filter) {
+        List<Method> list = new ArrayList<>(16);
+        for (Class<?> clz = clzz; recursive && clz != Object.class; clz = clzz.getSuperclass()) {
+            Method[] methods = clz.getDeclaredMethods();
+            for (Method m : methods) {
+                if (filter.test(m)) {
+                    list.add(m);
+                }
+            }
+        }
+        return list;
+    }
+
+    public static List<Field> getFields(Class<?> clzz, boolean recursive, Predicate<Field> filter) {
+        List<Field> list = new ArrayList<>(16);
+        for (Class<?> clz = clzz; recursive && clz != Object.class; clz = clzz.getSuperclass()) {
+            Field[] fields = clz.getFields();
+            for (Field f : fields) {
+                if (filter.test(f)) {
+                    list.add(f);
+                }
+            }
+        }
+        return list;
+    }
+
+    @SafeVarargs
+    private static boolean allMatch(Annotation[] as, Class<? extends Annotation> ... annotationClasses) {
+        return Arrays.stream(annotationClasses).allMatch(clz -> containAnnotation(as, clz));
+    }
+
+    @SafeVarargs
+    private static boolean anyMatch(Annotation[] as, Class<? extends Annotation> ... annotationClasses) {
+        return Arrays.stream(annotationClasses).anyMatch(clz -> containAnnotation(as, clz));
+    }
+
+    private static boolean containAnnotation(Annotation[] as, Class<? extends Annotation> clz) {
+        for (Annotation a : as) {
+            if (a.annotationType().equals(clz)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

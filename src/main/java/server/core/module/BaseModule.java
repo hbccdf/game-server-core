@@ -7,11 +7,11 @@ import server.core.di.BaseBinder;
 import server.core.di.AbstractGuiceInjector;
 import server.core.di.IInjector;
 import server.core.service.AbstractService;
+import server.core.service.IService;
 import server.core.service.factory.AbstractServiceFactory;
 import server.core.service.factory.IInstanceFactory;
 import server.core.service.factory.ServiceInjector;
 
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -22,10 +22,6 @@ public class BaseModule implements IModule {
     private final LinkedHashMap<Class<?>, HashMap<Integer, Object>> services = new LinkedHashMap<>();
 
     private AbstractServiceFactory factory;
-
-    public BaseModule(AbstractServiceFactory factory) {
-        this.factory = factory;
-    }
 
     public BaseModule(BaseBinder baseBinder) {
 
@@ -62,23 +58,18 @@ public class BaseModule implements IModule {
     public boolean initialize() {
         for (Map.Entry<Class<?>, HashMap<Integer, Object>> service : services.entrySet()) {
             for (Map.Entry<Integer, Object> end : service.getValue().entrySet()) {
-                Method method = null;
                 try {
-                    method = end.getValue().getClass().getMethod("initialize");
-                } catch (Exception e) {
-                    // do nothing
-                }
-                try {
-                    if (method != null) {
-                        if ((boolean) method.invoke(end.getValue())) {
-                            log.info("Initialize service success: {}:{}", end.getKey(), service.getKey().getCanonicalName());
-                        } else {
-                            log.error("Fail initialize service: {}:{}", end.getKey(), service.getKey().getCanonicalName());
-                            return false;
-                        }
+                    Object obj = end.getValue();
+                    if (obj instanceof IService) {
+                        IService s = (IService) obj;
+                        s.initialize();
+                    } else {
+                        log.error("fail initialize service: {}:{}", end.getKey(), service.getKey().getCanonicalName());
+                        return false;
                     }
                 } catch (Exception e) {
-                    throw new RuntimeException("Fail initialize service: " + end.getKey() + ":" + service.getKey().getCanonicalName(), e);
+                    log.error("fail initialize service: {}:{}", end.getKey(), service.getKey().getCanonicalName(), e);
+                    return false;
                 }
             }
         }
@@ -107,20 +98,17 @@ public class BaseModule implements IModule {
     @Override
     public void release() {
         for (HashMap<Integer, Object> endpoint : services.values()) {
-            for (Object s : endpoint.values()) {
-                Method method = null;
+            for (Object obj : endpoint.values()) {
                 try {
-                    method = s.getClass().getMethod("release");
-                } catch (Exception e) {
-                    // do nothing
-                }
-                try {
-                    if (method != null) {
-                        method.invoke(s);
-                        log.info("Release service success: " + s.getClass().getCanonicalName());
+                    if (obj instanceof IService) {
+                        IService s = (IService) obj;
+                        s.release();
+                        log.info("release service success: ", obj.getClass().getCanonicalName());
+                    } else {
+                        log.error("release service failed: ", obj.getClass().getCanonicalName());
                     }
                 } catch (Exception e) {
-                    throw new RuntimeException("Fail release service:" + s.getClass().getCanonicalName(), e);
+                    log.error("release service failed: ", obj.getClass().getCanonicalName(), e);
                 }
             }
         }
@@ -180,7 +168,7 @@ public class BaseModule implements IModule {
     }
 
     @Override
-    public IInstanceFactory getInstanceFactory() {
+    public IInstanceFactory getFactory() {
         return this.factory;
     }
 

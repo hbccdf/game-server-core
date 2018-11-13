@@ -8,5 +8,5 @@ public interface IModule extends IServiceHolder {
     void release();
     void update(long now);
 
-    IInstanceFactory getInstanceFactory();
+    IInstanceFactory getFactory();
 }

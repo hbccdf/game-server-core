@@ -23,7 +23,7 @@ public class MessageBus {
     public void init(String packageName) {
         Set<Class<?>> classes = ClassUtil.getClassesWithAnnotation(packageName, Register.class);
         for (Class<?> clz : classes) {
-            Method[] methods = clz.getDeclaredMethods();
+            List<Method> methods = ClassUtil.getMethodsWithAnyAnnotations(clz, false, Message.class, MessageId.class);
             for (Method m : methods) {
                 Message msg = m.getAnnotation(Message.class);
                 if (msg != null) {
