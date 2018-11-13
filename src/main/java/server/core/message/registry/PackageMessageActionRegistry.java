@@ -17,12 +17,8 @@ public class PackageMessageActionRegistry<K> extends AbstractMessageActionRegist
         this.factory = factory;
 
         Set<Class<?>> classes = ClassUtil.getAllSubclasses(pn, IMessageAction.class);
-        for (Class<?> clz : classes) {
-            if (clz.isAnnotationPresent(Deprecated.class)) {
-                continue;
-            }
-            reg(clz.asSubclass(IMessageAction.class));
-        }
+        classes.stream().filter(clz -> !clz.isAnnotationPresent(Deprecated.class))
+                .forEach(clz -> reg(clz.asSubclass(IMessageAction.class)));
     }
 
     @SuppressWarnings("unchecked")

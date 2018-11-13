@@ -6,10 +6,8 @@ import server.core.service.factory.IInstanceFactory;
 import server.core.util.ClassUtil;
 
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Stream;
 
 @Slf4j
 public class MessageBus {
@@ -22,20 +20,11 @@ public class MessageBus {
 
     public void init(String packageName) {
         Set<Class<?>> classes = ClassUtil.getClassesWithAnnotation(packageName, Register.class);
-        for (Class<?> clz : classes) {
+        classes.stream().forEach(clz -> {
             List<Method> methods = ClassUtil.getMethodsWithAnyAnnotations(clz, false, Message.class, MessageId.class);
-            for (Method m : methods) {
-                Message msg = m.getAnnotation(Message.class);
-                if (msg != null) {
-                    reg(ProtocolManager.getId(msg.value()), clz, m);
-                }
+            methods.stream().forEach(m -> reg(m, clz));
 
-                MessageId msgId = m.getAnnotation(MessageId.class);
-                if (msgId != null && ProtocolManager.getClass(msgId.value()) != null) {
-                    reg(msgId.value(), clz, m);
-                }
-            }
-        }
+        });
     }
 
     public <T> void post(T obj) {
@@ -46,9 +35,18 @@ public class MessageBus {
             return;
         }
 
-        List<BusNode> list = msgs.get(id);
-        for (BusNode node : list) {
-            node.invoke(obj);
+       msgs.get(id).stream().forEach(BusNode::invoke);
+    }
+
+    private void reg(Method m, Class<?> clz) {
+        Message msg = m.getAnnotation(Message.class);
+        if (msg != null) {
+            reg(ProtocolManager.getId(msg.value()), clz, m);
+        }
+
+        MessageId msgId = m.getAnnotation(MessageId.class);
+        if (msgId != null && ProtocolManager.getClass(msgId.value()) != null) {
+            reg(msgId.value(), clz, m);
         }
     }
 

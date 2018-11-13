@@ -14,8 +14,6 @@ import server.core.service.factory.ServiceInjector;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.Map;
-
 
 @Slf4j
 public class BaseModule implements IModule {
@@ -56,62 +54,48 @@ public class BaseModule implements IModule {
 
     @Override
     public boolean initialize() {
-        for (Map.Entry<Class<?>, HashMap<Integer, Object>> service : services.entrySet()) {
-            for (Map.Entry<Integer, Object> end : service.getValue().entrySet()) {
-                try {
-                    Object obj = end.getValue();
-                    if (obj instanceof IService) {
-                        IService s = (IService) obj;
-                        s.initialize();
-                    } else {
-                        log.error("fail initialize service: {}:{}", end.getKey(), service.getKey().getCanonicalName());
-                        return false;
-                    }
-                } catch (Exception e) {
-                    log.error("fail initialize service: {}:{}", end.getKey(), service.getKey().getCanonicalName(), e);
-                    return false;
+        return services.entrySet().stream().allMatch(service -> service.getValue().entrySet().stream().allMatch(end -> {
+            try {
+                Object obj = end.getValue();
+                if (obj instanceof IService) {
+                    IService s = (IService) obj;
+                    s.initialize();
+                    return true;
                 }
+                log.error("fail initialize service: {}:{}", end.getKey(), service.getKey().getCanonicalName());
+            } catch (Exception e) {
+                log.error("fail initialize service: {}:{}", end.getKey(), service.getKey().getCanonicalName(), e);
             }
-        }
-        return true;
+            return false;
+        }));
     }
 
     @Override
     public boolean reload() {
-        for (HashMap<Integer, Object> endpoint : services.values()) {
-            for (Object s : endpoint.values()) {
-                if (s instanceof IReloadable) {
-                    IReloadable r = (IReloadable) s;
-                    try {
-                        if (!r.reload()) {
-                            log.warn("service reload failed: {}", s.getClass().getCanonicalName());
-                        }
-                    } catch (Exception e) {
-                        log.error("service reload error: {}", s.getClass().getCanonicalName());
-                    }
+        services.values().forEach(endpoint -> endpoint.values().stream().filter(s -> s instanceof IReloadable).forEach(s -> {
+            IReloadable r = (IReloadable) s;
+            try {
+                if (!r.reload()) {
+                    log.warn("service reload failed: {}", s.getClass().getCanonicalName());
                 }
+            } catch (Exception e) {
+                log.error("service reload error: {}", s.getClass().getCanonicalName());
             }
-        }
+        }));
         return true;
     }
 
     @Override
     public void release() {
-        for (HashMap<Integer, Object> endpoint : services.values()) {
-            for (Object obj : endpoint.values()) {
-                try {
-                    if (obj instanceof IService) {
-                        IService s = (IService) obj;
-                        s.release();
-                        log.info("release service success: ", obj.getClass().getCanonicalName());
-                    } else {
-                        log.error("release service failed: ", obj.getClass().getCanonicalName());
-                    }
-                } catch (Exception e) {
-                    log.error("release service failed: ", obj.getClass().getCanonicalName(), e);
-                }
+        services.values().forEach(endpoint -> endpoint.values().stream().filter(s -> s instanceof IService).forEach(obj -> {
+            try {
+                IService s = (IService) obj;
+                s.release();
+                log.info("release service success: ", obj.getClass().getCanonicalName());
+            } catch (Exception e) {
+                log.error("release service failed: ", obj.getClass().getCanonicalName(), e);
             }
-        }
+        }));
         services.clear();
     }
 
@@ -158,13 +142,10 @@ public class BaseModule implements IModule {
 
     @Override
     public void update(long now) {
-        for (HashMap<Integer, Object> endpoint : services.values()) {
-            for (Object s : endpoint.values()) {
-                if (s instanceof AbstractService) {
-                    ((AbstractService) s).update(now);
-                }
-            }
-        }
+        services.values().forEach(
+                h -> h.values().stream().filter(s -> s instanceof AbstractService)
+                        .forEach(s -> ((AbstractService) s).update(now))
+        );
     }
 
     @Override

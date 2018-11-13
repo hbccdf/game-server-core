@@ -7,7 +7,9 @@ import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import server.core.configuration.ConfigManager;
 import server.core.service.factory.IInstanceFactory;
+import server.core.util.Unthrow;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -28,12 +30,8 @@ public class ModuleManager implements Iterable<IModule> {
             FileBasedConfigurationBuilder<XMLConfiguration> builder = configs.xmlBuilder(config);
             XMLConfiguration xml = builder.getConfiguration();
             List<String> modules = xml.getList(String.class, CONF_NODE);
-            for (String m : modules) {
-                if (!loadForName(m)) {
-                    return false;
-                }
-            }
-            return true;
+
+            return modules.stream().allMatch(m -> Unthrow.wrap(() -> loadForName(m)));
         } catch (Exception e) {
             log.error("fail to load modules. ", e);
         }
@@ -42,12 +40,7 @@ public class ModuleManager implements Iterable<IModule> {
 
     public boolean init(String... modules) {
         try {
-            for (String m : modules) {
-                if (!loadForName(m)) {
-                    return false;
-                }
-            }
-            return true;
+            return Arrays.stream(modules).allMatch(m -> Unthrow.wrap(() -> loadForName(m)));
         } catch (Exception e) {
             log.error("fail to load modules. ", e);
         }
@@ -59,22 +52,16 @@ public class ModuleManager implements Iterable<IModule> {
             return false;
         }
 
-        for (IModule m : modules.values()) {
-            m.reload();
-        }
+        modules.values().forEach(IModule::reload);
         return true;
     }
 
     public void update(long now) {
-        for (IModule m : modules.values()) {
-            m.update(now);
-        }
+        modules.values().forEach(m -> m.update(now));
     }
 
     public void release() {
-        for (IModule m : modules.values()) {
-            m.release();
-        }
+        modules.values().forEach(IModule::release);
     }
 
     @SuppressWarnings("unchecked")

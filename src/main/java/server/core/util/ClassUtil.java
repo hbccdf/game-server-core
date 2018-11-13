@@ -15,6 +15,7 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class ClassUtil {
@@ -204,6 +205,22 @@ public class ClassUtil {
         return result;
     }
 
+    public static List<Method> getMethods(Class<?> clzz, boolean recursive) {
+        return getMethods(clzz, recursive, EMPTY_METHOD_FILTER);
+    }
+
+    public static List<Field> getFields(Class<?> clzz, boolean recursive) {
+        return getFields(clzz, recursive, EMPTY_FIELD_FILTER);
+    }
+
+    public static List<Method> getMethods(Class<?> clzz, boolean recursive, Predicate<Method> filter) {
+        return getSuperClass(clzz, recursive).stream().flatMap(clz -> Arrays.stream(clz.getDeclaredMethods()).filter(filter::test)).collect(Collectors.toList());
+    }
+
+    public static List<Field> getFields(Class<?> clzz, boolean recursive, Predicate<Field> filter) {
+        return getSuperClass(clzz, recursive).stream().flatMap(clz -> Arrays.stream(clz.getDeclaredFields()).filter(filter::test)).collect(Collectors.toList());
+    }
+
     @SafeVarargs
     public static List<Method> getMethodsWithAllAnnotations(Class<?> clzz, boolean recursive, Class<? extends Annotation> ... annotationClasses) {
         return getMethods(clzz, recursive, m -> allMatch(m.getDeclaredAnnotations(), annotationClasses));
@@ -224,36 +241,10 @@ public class ClassUtil {
         return getFields(clzz, recursive, f -> anyMatch(f.getDeclaredAnnotations(), annotationClasses));
     }
 
-    public static List<Field> getFields(Class<?> clzz, boolean recursive) {
-        return getFields(clzz, recursive, EMPTY_FIELD_FILTER);
-    }
-
-    public static List<Method> getMethods(Class<?> clzz, boolean recursive) {
-        return getMethods(clzz, recursive, EMPTY_METHOD_FILTER);
-    }
-
-    public static List<Method> getMethods(Class<?> clzz, boolean recursive, Predicate<Method> filter) {
-        List<Method> list = new ArrayList<>(16);
+    public static List<Class<?>> getSuperClass(Class<?> clzz, boolean recursive) {
+        List<Class<?>> list = new ArrayList<>();
         for (Class<?> clz = clzz; recursive && clz != Object.class; clz = clzz.getSuperclass()) {
-            Method[] methods = clz.getDeclaredMethods();
-            for (Method m : methods) {
-                if (filter.test(m)) {
-                    list.add(m);
-                }
-            }
-        }
-        return list;
-    }
-
-    public static List<Field> getFields(Class<?> clzz, boolean recursive, Predicate<Field> filter) {
-        List<Field> list = new ArrayList<>(16);
-        for (Class<?> clz = clzz; recursive && clz != Object.class; clz = clzz.getSuperclass()) {
-            Field[] fields = clz.getFields();
-            for (Field f : fields) {
-                if (filter.test(f)) {
-                    list.add(f);
-                }
-            }
+            list.add(clz);
         }
         return list;
     }
@@ -269,11 +260,6 @@ public class ClassUtil {
     }
 
     private static boolean containAnnotation(Annotation[] as, Class<? extends Annotation> clz) {
-        for (Annotation a : as) {
-            if (a.annotationType().equals(clz)) {
-                return true;
-            }
-        }
-        return false;
+        return Arrays.stream(as).anyMatch(a -> a.annotationType().equals(clz));
     }
 }
