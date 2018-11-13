@@ -4,7 +4,6 @@ import network.client.TcpConnection;
 import network.handler.IProtocolHandler;
 import network.initializer.DefaultProtocolInitializer;
 import network.protocol.DefaultMessage;
-import network.protocol.codec.DefaultMessageCodecFactory;
 import org.apache.thrift.TBase;
 import server.core.util.ThriftUtil;
 

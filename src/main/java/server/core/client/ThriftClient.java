@@ -1,5 +1,6 @@
 package server.core.client;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TServiceClient;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.protocol.TMultiplexedProtocol;
@@ -14,9 +15,8 @@ import server.core.service.RemoteServerConfig;
 
 import java.lang.reflect.Constructor;
 
+@Slf4j
 public class ThriftClient {
-    private static final Logger logger = LoggerFactory.getLogger(ThriftClient.class);
-
     public static <T> T stub(Class<T> clz, String ip, int port, int numRetries, int timeBetweenRetry) {
         return internalStub(ip, port, clz, new ReconnectingThriftClient.Options(numRetries, timeBetweenRetry));
     }
@@ -51,7 +51,7 @@ public class ThriftClient {
             TServiceClient baseClient = (TServiceClient) constructor.newInstance(new TMultiplexedProtocol(p, clz.getCanonicalName()));
             return ReconnectingThriftClient.wrap(baseClient, options);
         } catch (Exception e) {
-            logger.error("proxy client error: {}", clz, e);
+            log.error("proxy client error: {}", clz, e);
         }
         return null;
     }

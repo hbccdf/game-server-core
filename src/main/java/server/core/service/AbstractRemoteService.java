@@ -1,5 +1,6 @@
 package server.core.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TCompactProtocol;
@@ -18,9 +19,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.List;
 
+@Slf4j
 public class AbstractRemoteService extends AbstractService {
-    private static final Logger logger = LoggerFactory.getLogger(AbstractRemoteService.class);
-
     private static final String THRIFT_IFACE = "Iface";
     private static final String THRIFT_PROCESSOR = "Processor";
 
@@ -40,7 +40,7 @@ public class AbstractRemoteService extends AbstractService {
     public boolean initialize() {
         RemoteServerConfig config = ConfigManager.read(RemoteServerConfig.class, configRootKey);
         if (config == null) {
-            logger.error("{} failed to get {} config", className, configRootKey);
+            log.error("{} failed to get {} config", className, configRootKey);
             return false;
         }
 
@@ -49,7 +49,7 @@ public class AbstractRemoteService extends AbstractService {
             initService(multiProcessor);
             return true;
         } catch (Exception e) {
-            logger.error("fail start remote service {}", className, e);
+            log.error("fail start remote service {}", className, e);
         }
         return false;
     }
@@ -71,7 +71,7 @@ public class AbstractRemoteService extends AbstractService {
     private TMultiplexedProcessor initServer(int port) throws TTransportException {
         TMultiplexedProcessor multiProcessor = processors.get(port);
         if (multiProcessor != null) {
-            logger.info("start remote server {}, at port {}", this.getClass().getName(), port);
+            log.info("start remote server {}, at port {}", this.getClass().getName(), port);
             return multiProcessor;
         }
 
@@ -90,7 +90,7 @@ public class AbstractRemoteService extends AbstractService {
         thread = new Thread(server::serve);
         thread.start();
 
-        logger.info("start remote server {}, at port {}", this.getClass().getName(), port);
+        log.info("start remote server {}, at port {}", this.getClass().getName(), port);
 
         return multiProcessor;
     }

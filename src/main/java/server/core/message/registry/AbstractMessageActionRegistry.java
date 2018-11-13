@@ -1,15 +1,10 @@
 package server.core.message.registry;
 
-import com.google.inject.Inject;
 import server.core.message.action.IMessageAction;
-import server.core.module.IServiceHolder;
-
 import java.util.HashMap;
 
 public class AbstractMessageActionRegistry<T> implements IMessageActionRegistry<T> {
-    @Inject
-    protected IServiceHolder holder;
-    private HashMap<T, IMessageAction> handlers = new HashMap<>();
+    private final HashMap<T, IMessageAction> handlers = new HashMap<>();
 
     public AbstractMessageActionRegistry() {
         super();

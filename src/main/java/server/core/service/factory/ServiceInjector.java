@@ -1,15 +1,15 @@
 package server.core.service.factory;
 
 import com.google.inject.Inject;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import server.core.di.IInjector;
 
 import java.lang.reflect.Field;
 
+@Slf4j
 public class ServiceInjector extends AbstractServiceFactory {
-
-    private static final Logger logger = LoggerFactory.getLogger(ServiceInjector.class);
     private IInjector injector;
 
     public ServiceInjector(IInjector injector) {
@@ -53,7 +53,7 @@ public class ServiceInjector extends AbstractServiceFactory {
                 }
             }
         } catch (Exception e) {
-            logger.error("inject object {} failed", object.getClass().getName(), e);
+            log.error("inject object {} failed", object.getClass().getName(), e);
         }
     }
 

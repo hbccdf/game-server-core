@@ -1,5 +1,6 @@
 package server.core.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TServiceClient;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.protocol.TMultiplexedProtocol;
@@ -17,14 +18,13 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+@Slf4j
 public class ServiceProxy implements InvocationHandler {
-    private static final Logger logger = LoggerFactory.getLogger(ServiceProxy.class);
-
     private final Class<?> serviceInterface;
 
     private final String configRootKey;
 
-    private RemoteServerConfig config;
+    private final RemoteServerConfig config;
 
     private TServiceClient client;
 
@@ -36,6 +36,7 @@ public class ServiceProxy implements InvocationHandler {
     public ServiceProxy(Class<?> serviceInterface, String configRootKey) {
         this.serviceInterface = serviceInterface;
         this.configRootKey = configRootKey;
+        this.config = ConfigManager.read(RemoteServerConfig.class, configRootKey);
     }
 
     @Override
@@ -44,15 +45,14 @@ public class ServiceProxy implements InvocationHandler {
             String methodName = method.getName();
             if (INITIALIZE_NAME.equals(methodName)) {
                 try {
-                    config = ConfigManager.read(RemoteServerConfig.class, configRootKey);
                     if (config == null) {
-                        logger.error("read server config {} failed", configRootKey);
+                        log.error("read server config {} failed", configRootKey);
                         return false;
                     }
                     buildConnection(config.getIp(), config.getPort());
                     return true;
                 } catch (Exception e) {
-                    logger.error("initialize service {} error", serviceInterface, e);
+                    log.error("initialize service {} error", serviceInterface, e);
                 }
                 return false;
 
@@ -82,7 +82,7 @@ public class ServiceProxy implements InvocationHandler {
 
     private void destroyConnection() {
         synchronized (this) {
-            logger.info("{} Destroyed connection", serviceInterface.getName());
+            log.info("{} Destroyed connection", serviceInterface.getName());
             client.getOutputProtocol().getTransport().close();
             client = null;
         }
@@ -91,7 +91,7 @@ public class ServiceProxy implements InvocationHandler {
     private void buildConnection(String ip, int port) throws Exception {
         synchronized (this) {
             client = buildClient(serviceInterface, ip, port);
-            logger.info("Established connection {}:{}", ip, port);
+            log.info("Established connection {}:{}", ip, port);
         }
     }
 

@@ -1,7 +1,6 @@
 package server.core.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,10 +14,8 @@ import java.util.function.Predicate;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+@Slf4j
 public class ClassUtil {
-
-    private static final Logger logger = LoggerFactory.getLogger(ClassUtil.class);
-
     /**
      * 默认过滤器（无实现）
      */
@@ -94,7 +91,7 @@ public class ClassUtil {
                 }
             }
         } catch (IOException e) {
-            logger.error("", e);
+            log.error("", e);
         }
 
         return result;
@@ -139,14 +136,14 @@ public class ClassUtil {
                                     result.add(c);
                                 }
                             } catch (ClassNotFoundException e) {
-                                logger.error("", e);
+                                log.error("", e);
                             }
                         }
                     }
                 }
             }
         } catch (IOException e) {
-            logger.error("", e);
+            log.error("", e);
         }
         return result;
     }
@@ -183,7 +180,7 @@ public class ClassUtil {
                         classes.add(clazz);
                     }
                 } catch (ClassNotFoundException e) {
-                    logger.error("", e);
+                    log.error("", e);
                 }
             }
         }

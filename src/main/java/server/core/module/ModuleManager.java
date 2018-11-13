@@ -1,11 +1,10 @@
 package server.core.module;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration2.XMLConfiguration;
 import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import server.core.configuration.ConfigManager;
 import server.core.service.factory.IInstanceFactory;
 
@@ -13,12 +12,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+@Slf4j
 public class ModuleManager implements Iterable<IModule> {
-    private static final Logger log = LoggerFactory.getLogger(ModuleManager.class);
     public static final ModuleManager INSTANCE = new ModuleManager();
     private static final String CONF_NODE = "modules.module";
 
-    private HashMap<Class<?>, IModule> modules = new HashMap<>();
+    private final HashMap<Class<?>, IModule> modules = new HashMap<>();
 
     private ModuleManager(){
     }

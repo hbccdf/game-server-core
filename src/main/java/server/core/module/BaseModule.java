@@ -1,8 +1,7 @@
 package server.core.module;
 
 import com.google.inject.AbstractModule;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import server.core.configuration.IReloadable;
 import server.core.di.BaseBinder;
 import server.core.di.AbstractGuiceInjector;
@@ -17,10 +16,10 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class BaseModule implements IModule {
-    protected Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private LinkedHashMap<Class<?>, HashMap<Integer, Object>> services = new LinkedHashMap<>();
+@Slf4j
+public class BaseModule implements IModule {
+    private final LinkedHashMap<Class<?>, HashMap<Integer, Object>> services = new LinkedHashMap<>();
 
     private AbstractServiceFactory factory;
 
@@ -72,9 +71,9 @@ public class BaseModule implements IModule {
                 try {
                     if (method != null) {
                         if ((boolean) method.invoke(end.getValue())) {
-                            logger.info("Initialize service success: {}:{}", end.getKey(), service.getKey().getCanonicalName());
+                            log.info("Initialize service success: {}:{}", end.getKey(), service.getKey().getCanonicalName());
                         } else {
-                            logger.error("Fail initialize service: {}:{}", end.getKey(), service.getKey().getCanonicalName());
+                            log.error("Fail initialize service: {}:{}", end.getKey(), service.getKey().getCanonicalName());
                             return false;
                         }
                     }
@@ -94,10 +93,10 @@ public class BaseModule implements IModule {
                     IReloadable r = (IReloadable) s;
                     try {
                         if (!r.reload()) {
-                            logger.warn("service reload failed: {}", s.getClass().getCanonicalName());
+                            log.warn("service reload failed: {}", s.getClass().getCanonicalName());
                         }
                     } catch (Exception e) {
-                        logger.error("service reload error: {}", s.getClass().getCanonicalName());
+                        log.error("service reload error: {}", s.getClass().getCanonicalName());
                     }
                 }
             }
@@ -118,7 +117,7 @@ public class BaseModule implements IModule {
                 try {
                     if (method != null) {
                         method.invoke(s);
-                        logger.info("Release service success: " + s.getClass().getCanonicalName());
+                        log.info("Release service success: " + s.getClass().getCanonicalName());
                     }
                 } catch (Exception e) {
                     throw new RuntimeException("Fail release service:" + s.getClass().getCanonicalName(), e);

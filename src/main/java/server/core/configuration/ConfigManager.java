@@ -2,11 +2,10 @@ package server.core.configuration;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import server.core.util.StringUtil;
 
 import java.io.File;
@@ -16,10 +15,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 
+@Slf4j
 public class ConfigManager {
     private static final JavaPropsMapper mapper = new JavaPropsMapper();
-
-    private static final Logger logger = LoggerFactory.getLogger(ConfigManager.class);
 
     private static final String CONFIG_PATH = "config.properties";
 
@@ -77,7 +75,7 @@ public class ConfigManager {
             fw.flush();
             return true;
         } catch (Exception e) {
-            logger.error("write config file error, {}", e);
+            log.error("write config file error, {}", e);
         }
         return false;
     }
@@ -95,7 +93,7 @@ public class ConfigManager {
             Properties props = internalGetProperties(rootKey);
             return mapper.readPropertiesAs(props, clz);
         } catch (IOException e) {
-            logger.error("read class config failed, class={}, rootKey={}, profile={}", clz.getName(), rootKey, e);
+            log.error("read class config failed, class={}, rootKey={}, profile={}", clz.getName(), rootKey, e);
         }
         return null;
     }
@@ -122,7 +120,7 @@ public class ConfigManager {
                 props.putAll(customProps);
             }
         } catch (Exception e) {
-            logger.error("read custom file error, {}", customPath, e);
+            log.error("read custom file error, {}", customPath, e);
         }
 
         return props;
@@ -163,7 +161,7 @@ public class ConfigManager {
             }
             return props;
         } catch (ConfigurationException e) {
-            logger.error("config error", e);
+            log.error("config error", e);
         }
         return null;
     }

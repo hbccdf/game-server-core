@@ -1,5 +1,6 @@
 package server.core.message.registry;
 
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import server.core.message.action.IMessageAction;
@@ -8,9 +9,8 @@ import server.core.util.ClassUtil;
 
 import java.util.Set;
 
+@Slf4j
 public class PackageMessageActionRegistry<K> extends AbstractMessageActionRegistry<K> {
-    private static final Logger logger = LoggerFactory.getLogger(PackageMessageActionRegistry.class);
-
     private IInstanceFactory factory;
 
     public PackageMessageActionRegistry(String pn, IInstanceFactory factory) {
@@ -38,10 +38,10 @@ public class PackageMessageActionRegistry<K> extends AbstractMessageActionRegist
             }
             add(command, handler);
 
-            logger.debug("register message action: command= {}, class={}", command, handler.getClass().getName());
+            log.debug("register message action: command= {}, class={}", command, handler.getClass().getName());
             return true;
         } catch (Exception e) {
-            logger.error("fail to register message action, clz = {}", clz, e);
+            log.error("fail to register message action, clz = {}", clz, e);
         }
         return false;
     }
