@@ -28,14 +28,14 @@ public class PackageMessageActionRegistry<K> extends AbstractMessageActionRegist
 
             K command = (K) handler.getId();
             if (contain(command)) {
-                throw new IllegalStateException("message action already registered, clz=" + clz);
+                throw new IllegalStateException("message action already registered, clz=" + clz.getName());
             }
             add(command, handler);
 
             log.debug("register message action: command= {}, class={}", command, handler.getClass().getName());
             return true;
         } catch (Exception e) {
-            log.error("fail to register message action, clz = {}", clz, e);
+            log.error("fail to register message action, clz = {}", clz.getName(), e);
         }
         return false;
     }
