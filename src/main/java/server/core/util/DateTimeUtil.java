@@ -26,6 +26,15 @@ public class DateTimeUtil {
         return format(date, DEFAULT_PATTERN);
     }
 
+    public static String format(long millisecond, String pattern) {
+        return format(new Date(millisecond), pattern);
+
+    }
+
+    public static String format(long millsecond) {
+        return format(new Date(millsecond));
+    }
+
     public static boolean equalsByDayOfYear(Date d1, Date d2) {
         Calendar cal1 = Calendar.getInstance();
         cal1.setTime(d1);
