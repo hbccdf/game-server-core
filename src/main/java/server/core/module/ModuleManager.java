@@ -21,7 +21,13 @@ public class ModuleManager implements Iterable<IModule> {
 
     private final HashMap<Class<?>, IModule> modules = new HashMap<>();
 
+    private boolean isInitialized;
+
     private ModuleManager(){
+    }
+
+    public boolean isInitialized() {
+        return isInitialized;
     }
 
     public boolean initialize(String config) {
@@ -31,7 +37,8 @@ public class ModuleManager implements Iterable<IModule> {
             XMLConfiguration xml = builder.getConfiguration();
             List<String> modules = xml.getList(String.class, CONF_NODE);
 
-            return modules.stream().allMatch(m -> Unthrow.wrap(() -> loadForName(m)));
+            isInitialized = modules.stream().allMatch(m -> Unthrow.wrap(() -> loadForName(m)));
+            return isInitialized;
         } catch (Exception e) {
             log.error("fail to load modules. ", e);
         }
