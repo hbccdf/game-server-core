@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 
 public class JsonTool {
-    private ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     public String toString(Object obj) throws JsonProcessingException {
         return mapper.writeValueAsString(obj);

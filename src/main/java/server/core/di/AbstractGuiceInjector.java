@@ -5,7 +5,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 public abstract class AbstractGuiceInjector implements IInjector {
-    private Injector injector;
+    private final Injector injector;
 
     public AbstractGuiceInjector() {
         injector = Guice.createInjector(newBinders());

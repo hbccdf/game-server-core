@@ -9,7 +9,7 @@ import java.util.Set;
 
 @Slf4j
 public class PackageMessageActionRegistry<K> extends AbstractMessageActionRegistry<K> {
-    private IInstanceFactory factory;
+    private final IInstanceFactory factory;
 
     public PackageMessageActionRegistry(String pn, IInstanceFactory factory) {
         super();

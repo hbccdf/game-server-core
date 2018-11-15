@@ -31,8 +31,8 @@ public class DateTimeUtil {
 
     }
 
-    public static String format(long millsecond) {
-        return format(new Date(millsecond));
+    public static String format(long millisecond) {
+        return format(new Date(millisecond));
     }
 
     public static boolean equalsByDayOfYear(Date d1, Date d2) {

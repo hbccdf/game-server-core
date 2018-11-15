@@ -7,7 +7,6 @@ import server.core.util.ClassUtil;
 
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.stream.Stream;
 
 @Slf4j
 public class MessageBus {
@@ -20,9 +19,9 @@ public class MessageBus {
 
     public void init(String packageName) {
         Set<Class<?>> classes = ClassUtil.getClassesWithAnnotation(packageName, Register.class);
-        classes.stream().forEach(clz -> {
+        classes.forEach(clz -> {
             List<Method> methods = ClassUtil.getMethodsWithAnyAnnotations(clz, false, Message.class, MessageId.class);
-            methods.stream().forEach(m -> reg(m, clz));
+            methods.forEach(m -> reg(m, clz));
 
         });
     }
@@ -58,8 +57,8 @@ public class MessageBus {
     }
 
     private static class BusNode {
-        private Object obj;
-        private Method method;
+        private final Object obj;
+        private final Method method;
 
         public BusNode(Object obj, Method method) {
             this.obj = obj;

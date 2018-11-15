@@ -214,11 +214,11 @@ public class ClassUtil {
     }
 
     public static List<Method> getMethods(Class<?> clzz, boolean recursive, Predicate<Method> filter) {
-        return getSuperClass(clzz, recursive).stream().flatMap(clz -> Arrays.stream(clz.getDeclaredMethods()).filter(filter::test)).collect(Collectors.toList());
+        return getSuperClass(clzz, recursive).stream().flatMap(clz -> Arrays.stream(clz.getDeclaredMethods()).filter(filter)).collect(Collectors.toList());
     }
 
     public static List<Field> getFields(Class<?> clzz, boolean recursive, Predicate<Field> filter) {
-        return getSuperClass(clzz, recursive).stream().flatMap(clz -> Arrays.stream(clz.getDeclaredFields()).filter(filter::test)).collect(Collectors.toList());
+        return getSuperClass(clzz, recursive).stream().flatMap(clz -> Arrays.stream(clz.getDeclaredFields()).filter(filter)).collect(Collectors.toList());
     }
 
     @SafeVarargs
