@@ -29,8 +29,13 @@ public class MessageBus {
     public <T> void post(T obj) {
         Class<?> clz = obj.getClass();
         Integer id = ProtocolManager.getId(clz);
-        if (id <= 0 || !msgs.containsKey(id)) {
+        if (id <= 0) {
             log.error("invalid msg, {}, id {}", clz.getName(), id);
+            return;
+        }
+
+        if (!msgs.containsKey(id)) {
+            log.debug("no handler for msg {}", id);
             return;
         }
 
