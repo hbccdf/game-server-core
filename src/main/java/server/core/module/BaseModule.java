@@ -59,8 +59,7 @@ public class BaseModule implements IModule {
                 Object obj = end.getValue();
                 if (obj instanceof IService) {
                     IService s = (IService) obj;
-                    s.initialize();
-                    return true;
+                    return s.initialize();
                 }
                 log.error("fail initialize service: {}:{}", end.getKey(), service.getKey().getCanonicalName());
             } catch (Exception e) {
