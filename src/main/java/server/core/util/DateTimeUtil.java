@@ -4,6 +4,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 public class DateTimeUtil {
     public static final String DEFAULT_PATTERN = "yyyy-MM-dd HH:mm:ss";
@@ -59,6 +60,22 @@ public class DateTimeUtil {
         //minus number would decrement the days
         cal.add(Calendar.DATE, days);
         return cal.getTime();
+    }
+
+    public static long getMilliSecondOfDay(Date date) {
+        return getMilliSecondOfDay(date.getTime());
+    }
+
+    public static long getMilliSecondOfDay(long millisecond) {
+        return millisecond % TimeUtil.ONE_DAY;
+    }
+
+    public static long getDays(Date date) {
+        return getDays(date.getTime());
+    }
+
+    public static long getDays(long millisecond) {
+        return millisecond / TimeUtil.ONE_DAY;
     }
 }
 
