@@ -1,5 +1,6 @@
 package server.core.service;
 
+import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
@@ -9,7 +10,13 @@ import org.apache.thrift.server.TThreadedSelectorServer;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.ZooDefs;
+import org.apache.zookeeper.ZooKeeper;
 import server.core.configuration.ConfigManager;
+import server.core.service.zk.EndPoint;
+import server.core.service.zk.IZkService;
 import server.core.util.ClassUtil;
 
 import java.lang.reflect.Constructor;
@@ -30,6 +37,9 @@ public class AbstractRemoteService extends AbstractService {
 
     private Thread thread = null;
 
+    @Inject
+    private IZkService zkService;
+
     public AbstractRemoteService(String configRootKey) {
         this.configRootKey = configRootKey;
     }
@@ -44,7 +54,7 @@ public class AbstractRemoteService extends AbstractService {
 
         try {
             TMultiplexedProcessor multiProcessor = initServer(config.getPort());
-            initService(multiProcessor);
+            initService(multiProcessor, config);
             return true;
         } catch (Exception e) {
             log.error("fail start remote service {}", className, e);
@@ -93,7 +103,7 @@ public class AbstractRemoteService extends AbstractService {
         return multiProcessor;
     }
 
-    private void initService(TMultiplexedProcessor multiProcessor) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    private void initService(TMultiplexedProcessor multiProcessor, RemoteServerConfig config) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException, KeeperException, InterruptedException {
         List<Class<?>> interfaces = ClassUtil.getInterface(this.getClass(), true);
         for (Class<?> clzz : interfaces) {
             String clzzName = clzz.getName();
@@ -103,8 +113,37 @@ public class AbstractRemoteService extends AbstractService {
                 Constructor<?> constructor = processorClass.getConstructor(clzz);
                 TProcessor processor = (TProcessor) constructor.newInstance(this);
                 multiProcessor.registerProcessor(clzz.getCanonicalName(), processor);
+
+                registerService(clzz, config);
                 break;
             }
+        }
+    }
+
+    private void registerService(Class<?> clzz, RemoteServerConfig config) throws KeeperException, InterruptedException {
+        ZooKeeper zk = zkService.get();
+        try {
+            zk.create("/Service", new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+        } catch (Exception ignored) {
+
+        }
+
+        try {
+            zk.create("/Service/" + clzz.getCanonicalName(), new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+        } catch (Exception ignored) {
+
+        }
+
+        try {
+            EndPoint ep = new EndPoint();
+            ep.setId(config.getEndpoint());
+            ep.setIp(config.getIp());
+            ep.setPort(config.getPort());
+            ep.setTimestamp(System.currentTimeMillis());
+
+            zk.create("/Service/" + clzz.getCanonicalName() + "/" + config.getEndpoint(), ep.encode(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+        } catch (Exception e) {
+            log.error("duplicate service node, service={}, endpointId", clzz.getCanonicalName(), config.getEndpoint(), e);
         }
     }
 }

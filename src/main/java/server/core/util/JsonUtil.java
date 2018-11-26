@@ -9,7 +9,7 @@ public class JsonUtil {
         return new JsonTool().toString(obj);
     }
 
-    public <T> T toObject(Class<T> clz, String jsonStr) throws IOException {
+    public static <T> T toObject(Class<T> clz, String jsonStr) throws IOException {
         return new JsonTool().toObject(clz, jsonStr);
     }
 }

@@ -9,32 +9,34 @@ import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
-import server.core.configuration.ConfigManager;
+import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.data.Stat;
+import server.core.module.ModuleManager;
+import server.core.service.zk.EndPoint;
+import server.core.service.zk.IZkService;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.List;
 
 @Slf4j
 public class ServiceProxy implements InvocationHandler {
     private final Class<?> serviceInterface;
 
-    private final String configRootKey;
-
-    private final RemoteServerConfig config;
-
     private TServiceClient client;
+    private EndPoint endPoint;
+
+    private IZkService zkService;
 
     private static final String INITIALIZE_NAME = "initialize";
     private static final String ISVALID_NAME = "isValid";
     private static final String RELEASE_NAME = "release";
     private static final String RELOAD_NAME = "reload";
 
-    public ServiceProxy(Class<?> serviceInterface, String configRootKey) {
+    public ServiceProxy(Class<?> serviceInterface) {
         this.serviceInterface = serviceInterface;
-        this.configRootKey = configRootKey;
-        this.config = ConfigManager.read(RemoteServerConfig.class, configRootKey);
     }
 
     @Override
@@ -42,33 +44,73 @@ public class ServiceProxy implements InvocationHandler {
         synchronized (this) {
             String methodName = method.getName();
             if (INITIALIZE_NAME.equals(methodName)) {
-                try {
-                    if (config == null) {
-                        log.error("read server config {} failed", configRootKey);
-                        return false;
-                    }
-                    buildConnection(config.getIp(), config.getPort());
-                    return true;
-                } catch (Exception e) {
-                    log.error("initialize service {} error", serviceInterface, e);
-                }
-                return false;
+                return init();
 
             } else if (ISVALID_NAME.equals(methodName)) {
-                return alive();
+                return isValid();
             } else if (RELEASE_NAME.equals(methodName)) {
-                destroyConnection();
+                release();
                 return null;
             } else if(RELOAD_NAME.equals(methodName)) {
-                return null;
+                return reload();
             } else {
                 if (!alive()) {
                     throw new IllegalStateException("remote service is not available: " + serviceInterface.getCanonicalName());
                 }
                 return method.invoke(client, args);
             }
+        }
+    }
 
-            //todo reconnect server and destroy connection when TTransportException
+    private boolean init() {
+        try {
+            zkService = ModuleManager.INSTANCE.getFactory().getInstance(IZkService.class);
+            Stat stat = zkService.get().exists("/Service/" + serviceInterface.getCanonicalName(), event -> {
+                if (event.getType() == Watcher.Event.EventType.NodeCreated) {
+                    find(serviceInterface);
+                }
+            });
+
+            if (stat != null) {
+                find(serviceInterface);
+            }
+            return true;
+        } catch (Exception e) {
+            log.error("initialize service {} error", serviceInterface, e);
+        }
+        return false;
+    }
+
+    private boolean isValid() {
+        return alive();
+    }
+
+    private void release() {
+        if (endPoint != null) {
+            destroyConnection(endPoint.getId());
+        }
+    }
+
+    private boolean reload() {
+        return true;
+    }
+
+    private void find(Class<?> clzz) {
+        try {
+            List<String> children = zkService.get().getChildren("/Service/" + clzz.getCanonicalName(), event -> {
+                if (event.getType() == Watcher.Event.EventType.NodeChildrenChanged) {
+                    if (!alive()) {
+                        find(clzz);
+                    }
+                }
+            });
+
+            if (children.size() > 0) {
+                String endpoint = children.get(0);
+                buildConnection(Integer.parseInt(endpoint));
+            }
+        } catch (Exception e) {
+            log.error("", e);
         }
     }
 
@@ -78,18 +120,41 @@ public class ServiceProxy implements InvocationHandler {
         }
     }
 
-    private void destroyConnection() {
+    private void destroyConnection(int endpointId) {
         synchronized (this) {
-            log.info("{} Destroyed connection", serviceInterface.getName());
-            client.getOutputProtocol().getTransport().close();
-            client = null;
+            try {
+                if (endPoint != null && endPoint.getId() == endpointId) {
+                    log.info("{} Destroyed connection, {}", serviceInterface.getName(), endpointId);
+                    client.getOutputProtocol().getTransport().close();
+                    client = null;
+                    endPoint = null;
+                }
+            } catch (Exception ignored) {
+
+            }
         }
     }
 
-    private void buildConnection(String ip, int port) throws Exception {
+    private void buildConnection(int endpointId) throws Exception {
         synchronized (this) {
-            client = buildClient(serviceInterface, ip, port);
-            log.info("Established connection {}:{}", ip, port);
+            if (endPoint != null) {
+                return;
+            }
+
+            byte[] data = zkService.get().getData("/Service/" + serviceInterface.getCanonicalName() + "/" + endpointId, event -> {
+                if (event.getType() == Watcher.Event.EventType.NodeDeleted) {
+                    destroyConnection(endpointId);
+                } else if (event.getType() == Watcher.Event.EventType.NodeDataChanged) {
+                    destroyConnection(endpointId);
+                    find(serviceInterface);
+                }
+            }, null);
+
+            EndPoint ep = EndPoint.decode(data);
+
+            client = buildClient(serviceInterface, ep.getIp(), ep.getPort());
+            this.endPoint = ep;
+            log.info("Established connection {}", endPoint);
         }
     }
 
