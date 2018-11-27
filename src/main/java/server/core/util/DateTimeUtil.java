@@ -2,8 +2,10 @@ package server.core.util;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 public class DateTimeUtil {
@@ -18,17 +20,28 @@ public class DateTimeUtil {
         return parse(str, DEFAULT_PATTERN);
     }
 
-    public static String format(Date date, String pattern) {
+    public static String format(Date date, String pattern, boolean isUTC) {
         SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+        if (isUTC) {
+            sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        }
         return sdf.format(date);
+    }
+
+    public static String format(Date date, String pattern) {
+        return format(date, pattern, false);
     }
 
     public static String format(Date date) {
         return format(date, DEFAULT_PATTERN);
     }
 
+    public static String format(long millisecond, String pattern, boolean isUTC) {
+        return format(new Date(millisecond), pattern, isUTC);
+    }
+
     public static String format(long millisecond, String pattern) {
-        return format(new Date(millisecond), pattern);
+        return format(millisecond, pattern, false);
 
     }
 
