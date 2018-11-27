@@ -28,7 +28,7 @@
     <dependencies>
         <dependency>
             <groupId>com.cytxcn.game</groupId>
-            <artifactId>network</artifactId>
+            <artifactId>game-network</artifactId>
             <version>0.1.1</version>
         </dependency>
         <dependency>
