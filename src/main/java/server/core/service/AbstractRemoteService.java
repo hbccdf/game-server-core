@@ -40,6 +40,10 @@ public class AbstractRemoteService extends AbstractService {
     @Inject
     private IZkService zkService;
 
+    public AbstractRemoteService() {
+        this("backServer");
+    }
+
     public AbstractRemoteService(String configRootKey) {
         this.configRootKey = configRootKey;
     }
