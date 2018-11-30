@@ -1,6 +1,7 @@
 package server.core.service;
 
 import lombok.extern.slf4j.Slf4j;
+import network.client.future.ConnectFuture;
 import org.apache.thrift.TServiceClient;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.protocol.TMultiplexedProtocol;
@@ -24,6 +25,8 @@ import java.util.List;
 @Slf4j
 public class ServiceProxy implements InvocationHandler {
     private final Class<?> serviceInterface;
+    private final boolean waitConnected;
+    private ConnectFuture future = new ConnectFuture();
 
     private TServiceClient client;
     private EndPoint endPoint;
@@ -35,8 +38,9 @@ public class ServiceProxy implements InvocationHandler {
     private static final String RELEASE_NAME = "release";
     private static final String RELOAD_NAME = "reload";
 
-    public ServiceProxy(Class<?> serviceInterface) {
+    public ServiceProxy(Class<?> serviceInterface, boolean waitConnected) {
         this.serviceInterface = serviceInterface;
+        this.waitConnected = waitConnected;
     }
 
     @Override
@@ -73,6 +77,11 @@ public class ServiceProxy implements InvocationHandler {
 
             if (stat != null) {
                 find(serviceInterface);
+            }
+
+            if (waitConnected) {
+                log.info("wait connect {}", serviceInterface.getCanonicalName());
+                return future.get();
             }
             return true;
         } catch (Exception e) {
@@ -128,6 +137,7 @@ public class ServiceProxy implements InvocationHandler {
                     client.getOutputProtocol().getTransport().close();
                     client = null;
                     endPoint = null;
+                    future = new ConnectFuture();
                 }
             } catch (Exception ignored) {
 
@@ -154,7 +164,8 @@ public class ServiceProxy implements InvocationHandler {
 
             client = buildClient(serviceInterface, ep.getIp(), ep.getPort());
             this.endPoint = ep;
-            log.info("Established connection {}", endPoint);
+            log.info("Established {} connection {}", serviceInterface.getCanonicalName(), endPoint);
+            future.setResult(true);
         }
     }
 
