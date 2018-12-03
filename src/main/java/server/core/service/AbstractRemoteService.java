@@ -10,10 +10,7 @@ import org.apache.thrift.server.TThreadedSelectorServer;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.ZooDefs;
-import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.*;
 import server.core.configuration.ConfigManager;
 import server.core.service.zk.EndPoint;
 import server.core.service.zk.IZkService;
@@ -107,7 +104,7 @@ public class AbstractRemoteService extends AbstractService {
         return multiProcessor;
     }
 
-    private void initService(TMultiplexedProcessor multiProcessor, RemoteServerConfig config) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException, KeeperException, InterruptedException {
+    private void initService(TMultiplexedProcessor multiProcessor, RemoteServerConfig config) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         List<Class<?>> interfaces = ClassUtil.getInterface(this.getClass(), true);
         for (Class<?> clzz : interfaces) {
             String clzzName = clzz.getName();
@@ -124,7 +121,7 @@ public class AbstractRemoteService extends AbstractService {
         }
     }
 
-    private void registerService(Class<?> clzz, RemoteServerConfig config) throws KeeperException, InterruptedException {
+    private void registerService(Class<?> clzz, RemoteServerConfig config) {
         ZooKeeper zk = zkService.get();
         try {
             zk.create("/Service", new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
@@ -145,9 +142,22 @@ public class AbstractRemoteService extends AbstractService {
             ep.setPort(config.getPort());
             ep.setTimestamp(System.currentTimeMillis());
 
-            zk.create("/Service/" + clzz.getCanonicalName() + "/" + config.getEndpoint(), ep.encode(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+            String endpointName = "/Service/" + clzz.getCanonicalName() + "/" + config.getEndpoint();
+
+            zk.create(endpointName, ep.encode(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+
+            zk.exists(endpointName, event -> {
+                if (event.getType() == Watcher.Event.EventType.NodeDeleted || event.getState() == Watcher.Event.KeeperState.Expired) {
+                    log.error("{}:{} disconnect with center, event {}", clzz.getCanonicalName(), config.getEndpoint(), event);
+                    registerService(clzz, config);
+                }
+            });
+
+            if (zk.exists(endpointName, false) != null) {
+                log.info("success register to center {}:{}", clzz.getCanonicalName(), ep.getId());
+            }
         } catch (Exception e) {
-            log.error("duplicate service node, service={}, endpointId", clzz.getCanonicalName(), config.getEndpoint(), e);
+            log.error("duplicate service node, service={}, endpointId={}", clzz.getCanonicalName(), config.getEndpoint(), e);
         }
     }
 }

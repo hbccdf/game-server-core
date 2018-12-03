@@ -16,18 +16,7 @@ public class ZkServiceImpl extends AbstractService implements IZkService {
 
     @Override
     public boolean initialize() {
-        try {
-            ZkConfig config = ConfigManager.read(ZkConfig.class, "zookeeper");
-            zk = new ZooKeeper(config.getConnectString(), config.getSessionTimeout(), event -> {
-                if (event.getType() != Watcher.Event.EventType.None) {
-                    log.info("{}:{}", event.getType(), event.getPath());
-                }
-            });
-            return true;
-        } catch (Exception e) {
-            log.error("", e);
-        }
-        return false;
+        return initZk();
     }
 
     @Override
@@ -55,6 +44,29 @@ public class ZkServiceImpl extends AbstractService implements IZkService {
     @Override
     public ZooKeeper get() {
         return zk;
+    }
+
+    private boolean initZk() {
+        try {
+            ZkConfig config = ConfigManager.read(ZkConfig.class, "zookeeper");
+            zk = new ZooKeeper(config.getConnectString(), config.getSessionTimeout(), event -> {
+                if (event.getState() == Watcher.Event.KeeperState.Expired) {
+                    log.error("zk session expired");
+                    try {
+                        zk.close();
+                        zk = null;
+                    } catch (InterruptedException ignored) {
+                    }
+
+                    log.info("try to reconnect zk center");
+                    initZk();
+                }
+            });
+            return true;
+        } catch (Exception e) {
+            log.error("", e);
+        }
+        return false;
     }
 
     public static class ZkConfig {

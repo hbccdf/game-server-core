@@ -21,6 +21,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class ServiceProxy implements InvocationHandler {
@@ -48,7 +49,9 @@ public class ServiceProxy implements InvocationHandler {
         synchronized (this) {
             String methodName = method.getName();
             if (INITIALIZE_NAME.equals(methodName)) {
-                return init();
+                if (!init()) {
+                    return false;
+                }
 
             } else if (ISVALID_NAME.equals(methodName)) {
                 return isValid();
@@ -64,6 +67,13 @@ public class ServiceProxy implements InvocationHandler {
                 return method.invoke(client, args);
             }
         }
+
+        if (waitConnected && !alive()) {
+            log.info("wait connect {}", serviceInterface.getCanonicalName());
+            return future.get(1, TimeUnit.MINUTES);
+        }
+
+        return true;
     }
 
     private boolean init() {
@@ -77,11 +87,6 @@ public class ServiceProxy implements InvocationHandler {
 
             if (stat != null) {
                 find(serviceInterface);
-            }
-
-            if (waitConnected) {
-                log.info("wait connect {}", serviceInterface.getCanonicalName());
-                return future.get();
             }
             return true;
         } catch (Exception e) {
@@ -133,7 +138,7 @@ public class ServiceProxy implements InvocationHandler {
         synchronized (this) {
             try {
                 if (endPoint != null && endPoint.getId() == endpointId) {
-                    log.info("{} Destroyed connection, {}", serviceInterface.getName(), endpointId);
+                    log.error("{}:{} Destroyed connection", serviceInterface.getCanonicalName(), endpointId);
                     client.getOutputProtocol().getTransport().close();
                     client = null;
                     endPoint = null;
@@ -164,7 +169,7 @@ public class ServiceProxy implements InvocationHandler {
 
             client = buildClient(serviceInterface, ep.getIp(), ep.getPort());
             this.endPoint = ep;
-            log.info("Established {} connection {}", serviceInterface.getCanonicalName(), endPoint);
+            log.info("Established {}:{} connection", serviceInterface.getCanonicalName(), endPoint);
             future.setResult(true);
         }
     }
