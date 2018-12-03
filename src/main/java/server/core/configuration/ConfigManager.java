@@ -99,55 +99,57 @@ public class ConfigManager {
     }
 
     private static void loadConfig(boolean withUserConfig) {
-        Properties props = null;
         try {
-            if (isFileExist(getSysConfigFile(CONFIG_PATH))) {
-                props = internalGetProperties(getSysConfigFile(CONFIG_PATH), null, null);
+            String path = getSysConfigFile(CONFIG_PATH);
+            Properties props = internalGetProperties(CONFIG_PATH, null, null);
+            assert props != null;
+
+            String profile = props.getProperty("profile");
+            if (profile == null && isFileExist(path)) {
+                props = internalGetProperties(path, null, null);
+                assert props != null;
+                configProfile = props.getProperty("profile", configProfile);
+                log.info("profile is {}, with {}", configProfile, path);
+            } else if (profile != null) {
+                configProfile = profile;
+                log.info("profile is {}, with {}", configProfile, CONFIG_PATH);
+            } else {
+                log.info("profile is {}, with default", configProfile);
             }
         } catch (Exception e) {
             log.error("", e);
         }
-        if (props == null) {
-            props = internalGetProperties(CONFIG_PATH, null, null);
-        }
-        assert props != null;
-        configProfile = props.getProperty("profile", configProfile);
-
-        log.info("profile is {}", configProfile);
 
         configProps = internalLoadConfig(withUserConfig);
     }
 
     private static Properties internalLoadConfig(boolean withUserConfig) {
-        Properties props = internalGetProperties(CONFIG_PATH, null, configProfile);
-        if (props == null) {
-            return null;
-        }
-
+        Properties props = null;
         String sysPath = getSysConfigFile(CONFIG_PATH);
+        String customPath = getCustomConfigFile(CONFIG_PATH);
+
         try {
             if (isFileExist(sysPath)) {
-                Properties sysProps = internalGetProperties(sysPath, null, configProfile);
-                assert sysProps != null;
-                props.putAll(sysProps);
+                props = internalGetProperties(sysPath, null, configProfile);
+                assert props != null;
             }
-        } catch (Exception e) {
-            log.error("read sys config file error, {}", sysPath, e);
-        }
 
-        if (!withUserConfig) {
-            return props;
-        }
+            Properties configProps = internalGetProperties(CONFIG_PATH, null, configProfile);
+            assert configProps != null;
+            if (props == null) {
+                props = configProps;
+            } else {
+                props.putAll(configProps);
+            }
 
-        String customPath = getCustomConfigFile(CONFIG_PATH);
-        try {
-            if (isFileExist(customPath)) {
+            if (withUserConfig && isFileExist(customPath)) {
                 Properties customProps = internalGetProperties(customPath, null, configProfile);
                 assert customProps != null;
                 props.putAll(customProps);
             }
+
         } catch (Exception e) {
-            log.error("read custom file error, {}", customPath, e);
+            log.error("read config file error, sys {} custom {}, {}", sysPath, customPath, e);
         }
 
         return props;
