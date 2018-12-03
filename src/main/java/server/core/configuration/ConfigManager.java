@@ -99,22 +99,49 @@ public class ConfigManager {
     }
 
     private static void loadConfig(boolean withUserConfig) {
-        Properties props = internalGetProperties(CONFIG_PATH, null, null);
+        Properties props = null;
+        try {
+            if (isFileExist(getSysConfigFile(CONFIG_PATH))) {
+                props = internalGetProperties(getSysConfigFile(CONFIG_PATH), null, null);
+            }
+        } catch (Exception e) {
+            log.error("", e);
+        }
+        if (props == null) {
+            props = internalGetProperties(CONFIG_PATH, null, null);
+        }
         assert props != null;
         configProfile = props.getProperty("profile", configProfile);
+
+        log.info("profile is {}", configProfile);
 
         configProps = internalLoadConfig(withUserConfig);
     }
 
     private static Properties internalLoadConfig(boolean withUserConfig) {
         Properties props = internalGetProperties(CONFIG_PATH, null, configProfile);
-        if (props == null || !withUserConfig) {
+        if (props == null) {
+            return null;
+        }
+
+        String sysPath = getSysConfigFile(CONFIG_PATH);
+        try {
+            if (isFileExist(sysPath)) {
+                Properties sysProps = internalGetProperties(sysPath, null, configProfile);
+                assert sysProps != null;
+                props.putAll(sysProps);
+            }
+        } catch (Exception e) {
+            log.error("read sys config file error, {}", sysPath, e);
+        }
+
+        if (!withUserConfig) {
             return props;
         }
 
         String customPath = getCustomConfigFile(CONFIG_PATH);
         try {
-            if (new File(customPath).exists() || ConfigManager.class.getClassLoader().getResources(customPath).hasMoreElements()) {
+            if (isFileExist(customPath)) {
                 Properties customProps = internalGetProperties(customPath, null, configProfile);
                 assert customProps != null;
                 props.putAll(customProps);
@@ -145,7 +172,7 @@ public class ConfigManager {
         return props;
     }
 
-    private static Properties internalGetProperties(String path, String rootKey, String profile ) {
+    private static Properties internalGetProperties(String path, String rootKey, String profile) {
         Configurations configs = new Configurations();
         try {
             Properties props = new Properties();
@@ -161,7 +188,7 @@ public class ConfigManager {
             }
             return props;
         } catch (ConfigurationException e) {
-            log.error("config error", e);
+            log.error("config error, path {}, rootKey {}, profile {}", path, rootKey, profile, e);
         }
         return null;
     }
@@ -185,11 +212,23 @@ public class ConfigManager {
     }
 
     private static String getCustomConfigFile(String path) {
+        return getSuffixConfigFile(path, ".user");
+    }
+
+    private static String getSysConfigFile(String path) {
+        return getSuffixConfigFile(path, ".sys");
+    }
+
+    private static String getSuffixConfigFile(String path, String suffix) {
         int index = path.lastIndexOf('.');
         if (index >= 0) {
-            return path.substring(0, index) + ".user" + path.substring(index);
+            return path.substring(0, index) + suffix + path.substring(index);
         } else {
-            return path + ".user";
+            return path + suffix;
         }
+    }
+
+    private static boolean isFileExist(String path) throws IOException {
+        return new File(path).exists() || ConfigManager.class.getClassLoader().getResources(path).hasMoreElements();
     }
 }
