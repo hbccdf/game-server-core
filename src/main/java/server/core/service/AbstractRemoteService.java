@@ -26,6 +26,8 @@ public class AbstractRemoteService extends AbstractService {
     private static final String THRIFT_IFACE = "Iface";
     private static final String THRIFT_PROCESSOR = "Processor";
 
+    public static final String LOCAL_HOST = "127.0.0.1";
+
     private static final HashMap<Integer, TMultiplexedProcessor> processors = new HashMap<>();
 
     private final String configRootKey;
@@ -138,7 +140,7 @@ public class AbstractRemoteService extends AbstractService {
         try {
             EndPoint ep = new EndPoint();
             ep.setId(config.getEndpoint());
-            ep.setIp(config.getIp());
+            ep.setIp(getIp(config));
             ep.setPort(config.getPort());
             ep.setTimestamp(System.currentTimeMillis());
 
@@ -159,5 +161,13 @@ public class AbstractRemoteService extends AbstractService {
         } catch (Exception e) {
             log.error("duplicate service node, service={}, endpointId={}", clzz.getCanonicalName(), config.getEndpoint(), e);
         }
+    }
+
+    private String getIp(RemoteServerConfig config) {
+        if (config.getIp() == null || LOCAL_HOST.equals(config.getIp())) {
+            return ConfigManager.getString("systemIp", LOCAL_HOST);
+        }
+
+        return config.getIp();
     }
 }

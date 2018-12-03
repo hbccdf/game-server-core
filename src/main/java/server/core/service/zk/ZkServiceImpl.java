@@ -10,8 +10,6 @@ import server.core.service.AbstractService;
 @Slf4j
 @Singleton
 public class ZkServiceImpl extends AbstractService implements IZkService {
-    private static final String PRIFIX = "/Service/";
-
     private ZooKeeper zk;
 
     @Override
@@ -49,7 +47,7 @@ public class ZkServiceImpl extends AbstractService implements IZkService {
     private boolean initZk() {
         try {
             ZkConfig config = ConfigManager.read(ZkConfig.class, "zookeeper");
-            zk = new ZooKeeper(config.getConnectString(), config.getSessionTimeout(), event -> {
+            zk = new ZooKeeper(getConnectString(config), config.getSessionTimeout(), event -> {
                 if (event.getState() == Watcher.Event.KeeperState.Expired) {
                     log.error("zk session expired");
                     try {
@@ -67,6 +65,10 @@ public class ZkServiceImpl extends AbstractService implements IZkService {
             log.error("", e);
         }
         return false;
+    }
+
+    private String getConnectString(ZkConfig config) {
+        return ConfigManager.getString("systemIp", "127.0.0.1") + ":" + config.getConnectString();
     }
 
     public static class ZkConfig {

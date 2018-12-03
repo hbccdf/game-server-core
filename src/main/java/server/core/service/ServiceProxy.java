@@ -12,6 +12,7 @@ import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.data.Stat;
+import server.core.configuration.ConfigManager;
 import server.core.module.ModuleManager;
 import server.core.service.zk.EndPoint;
 import server.core.service.zk.IZkService;
@@ -38,6 +39,8 @@ public class ServiceProxy implements InvocationHandler {
     private static final String ISVALID_NAME = "isValid";
     private static final String RELEASE_NAME = "release";
     private static final String RELOAD_NAME = "reload";
+
+    public static final String LOCAL_HOST = "127.0.0.1";
 
     public ServiceProxy(Class<?> serviceInterface, boolean waitConnected) {
         this.serviceInterface = serviceInterface;
@@ -138,7 +141,7 @@ public class ServiceProxy implements InvocationHandler {
         synchronized (this) {
             try {
                 if (endPoint != null && endPoint.getId() == endpointId) {
-                    log.error("{}:{} Destroyed connection", serviceInterface.getCanonicalName(), endpointId);
+                    log.error("{}:{} destroyed connection", serviceInterface.getCanonicalName(), endpointId);
                     client.getOutputProtocol().getTransport().close();
                     client = null;
                     endPoint = null;
@@ -167,9 +170,9 @@ public class ServiceProxy implements InvocationHandler {
 
             EndPoint ep = EndPoint.decode(data);
 
-            client = buildClient(serviceInterface, ep.getIp(), ep.getPort());
+            client = buildClient(serviceInterface, getIp(ep), ep.getPort());
             this.endPoint = ep;
-            log.info("Established {}:{} connection", serviceInterface.getCanonicalName(), endPoint);
+            log.info("established {}:{} connection", serviceInterface.getCanonicalName(), endPoint);
             future.setResult(true);
         }
     }
@@ -182,5 +185,13 @@ public class ServiceProxy implements InvocationHandler {
         TProtocol p = new TCompactProtocol(transport);
         Constructor<?> constructor = clazzClient.getConstructor(TProtocol.class);
         return (TServiceClient) constructor.newInstance(new TMultiplexedProtocol(p, si.getCanonicalName()));
+    }
+
+    private String getIp(EndPoint ep) {
+        if (LOCAL_HOST.equals(ep.getIp())) {
+            return ConfigManager.getString("systemIp", LOCAL_HOST);
+        }
+
+        return ep.getIp();
     }
 }
