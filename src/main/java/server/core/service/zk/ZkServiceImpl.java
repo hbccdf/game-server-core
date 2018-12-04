@@ -68,7 +68,11 @@ public class ZkServiceImpl extends AbstractService implements IZkService {
     }
 
     private String getConnectString(ZkConfig config) {
-        return ConfigManager.getString("systemIp", "127.0.0.1") + ":" + config.getConnectString();
+        if (!config.getConnectString().contains(":")) {
+            return ConfigManager.getString("systemIp", "127.0.0.1") + ":" + config.getConnectString();
+        } else {
+            return config.getConnectString();
+        }
     }
 
     public static class ZkConfig {
