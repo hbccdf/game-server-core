@@ -188,10 +188,10 @@ public class ServiceProxy implements InvocationHandler {
     }
 
     private String getIp(EndPoint ep) {
-        if (LOCAL_HOST.equals(ep.getIp())) {
-            return ConfigManager.getString("systemIp", LOCAL_HOST);
+        String systemIp = ConfigManager.getString("systemIp", LOCAL_HOST);
+        if (systemIp.equals(ep.getIp())) {
+            return LOCAL_HOST;
         }
-
         return ep.getIp();
     }
 }
