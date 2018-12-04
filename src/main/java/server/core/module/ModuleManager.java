@@ -55,12 +55,18 @@ public class ModuleManager implements Iterable<IModule> {
     }
 
     public boolean reload(boolean reloadConfig) {
-        if (reloadConfig && !ConfigManager.reload()) {
-            return false;
+        try {
+            if (reloadConfig && !ConfigManager.reload()) {
+                return false;
+            }
+
+            modules.values().forEach(IModule::reload);
+            return true;
+        } catch (Exception e) {
+            log.error("fail to reload config", e);
         }
 
-        modules.values().forEach(IModule::reload);
-        return true;
+        return false;
     }
 
     public void update(long now) {
