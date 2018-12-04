@@ -6,7 +6,7 @@
 
     <groupId>com.cytxcn.game</groupId>
     <artifactId>game-server-core</artifactId>
-    <version>0.1.1</version>
+    <version>0.1.2</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -29,7 +29,7 @@
         <dependency>
             <groupId>com.cytxcn.game</groupId>
             <artifactId>game-network</artifactId>
-            <version>0.1.1</version>
+            <version>0.1.2</version>
         </dependency>
         <dependency>
             <groupId>org.apache.thrift</groupId>
