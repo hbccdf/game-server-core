@@ -2,11 +2,9 @@ package server.core.util;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
-import java.util.concurrent.TimeUnit;
 
 public class DateTimeUtil {
     public static final String DEFAULT_PATTERN = "yyyy-MM-dd HH:mm:ss";
