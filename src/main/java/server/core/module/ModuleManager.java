@@ -47,7 +47,8 @@ public class ModuleManager implements Iterable<IModule> {
 
     public boolean init(String... modules) {
         try {
-            return Arrays.stream(modules).allMatch(m -> Unthrow.wrap(() -> loadForName(m)));
+            isInitialized = Arrays.stream(modules).allMatch(m -> Unthrow.wrap(() -> loadForName(m)));
+            return isInitialized;
         } catch (Exception e) {
             log.error("fail to load modules. ", e);
         }
